@@ -2,8 +2,8 @@
 public class Main {
 
 	public static void main(String[] args) {
-		int M = 100;
-		int num = 100;
+		int M = 10;
+		int num = 10;
 		MiEntero N = new MiEntero();
 		N.set(0);
 		Lock lock = new LockRompeEmpate(2 * M);

@@ -7,8 +7,13 @@ public class LockRompeEmpate extends Lock {
 
 	public LockRompeEmpate(int N) {
 		super(N);
+		System.out.println(N);
 		this.last = new ArrayList<MiEntero>(N);
 		this.in = new ArrayList<MiEntero>(N);
+		for(int i=0;i<N;i++) {
+			last.add(new MiEntero());
+			in.add(new MiEntero());
+		}
 	}
 
 	public void takeLock(int id) {
