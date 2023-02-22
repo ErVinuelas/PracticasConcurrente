@@ -17,17 +17,18 @@ public class LockRompeEmpate extends Lock {
 	}
 
 	public void takeLock(int id) {
-		for (int j = 1; j < N; j++) {
-			in.get(id).set(j);
+		for (int j = 0; j < N; j++) {
+			in.get(id).set(j+1);
 			last.get(j).set(id);
-			for (int k = 1; k < N; k++)
+			for (int k = 0; k < N; k++)
 				if (k != id)
-					while (in.get(j).get() >= in.get(id).get() && last.get(j).get() == id)
-						;
-		}
+					while (in.get(k).get() >= in.get(id).get() && last.get(j).get() == id);
+			}
+		System.out.println("the process "+Integer.toString(id)+" took the lock");
 	}
 
 	public void releaseLock(int id) {
+		System.out.println("the process "+Integer.toString(id)+" released the lock");
 		in.get(id).set(0);
 	}
 }
