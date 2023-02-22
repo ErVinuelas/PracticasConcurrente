@@ -24,9 +24,11 @@ public class LockRompeEmpate extends Lock {
 				if (k != id)
 					while (in.get(k).get() >= in.get(id).get() && last.get(j).get() == id);
 			}
+		System.out.println("the process "+Integer.toString(id)+" took the lock");
 	}
 
 	public void releaseLock(int id) {
+		System.out.println("the process "+Integer.toString(id)+" released the lock");
 		in.get(id).set(0);
 	}
 }
