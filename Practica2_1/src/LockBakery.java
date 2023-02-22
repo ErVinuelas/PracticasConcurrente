@@ -25,12 +25,10 @@ public class LockBakery extends Lock{
 		for(int i=0;i<N;i++) if(i!=id) {
 			while(turn.get(i).get()!=0 && op(id,i));
 		}
-		System.out.println("the process "+Integer.toString(id)+" took the lock");
 	}
 
 	@Override
 	public void releaseLock(int id) {
-		System.out.println("the process "+Integer.toString(id)+" released the lock");
 		turn.get(id).set(0);
 	}
 
