@@ -1,32 +1,37 @@
+import java.util.ArrayList;
 
 public class LockBakery extends Lock{
 
-	private int[] turn;
+	private ArrayList<MiEntero> turn;
 	
 	private boolean op(int id1, int id2) {
-		return turn[id1]>turn[id2] || (turn[id1]==turn[id2] && id1>id2);
+		return turn.get(id1).get()>turn.get(id2).get() || (turn.get(id1).get()==turn.get(id2).get() && id1>id2);
 	}
 	
 	public LockBakery(int N) {
 		super(N);
-		turn = new int[N];
+		turn = new ArrayList<MiEntero>(N);
+		for(int i=0;i<N;i++)
+			turn.add(new MiEntero());
 	}
 
 	@Override
 	public void takeLock(int id) {
-		turn[id]=1;
+		turn.get(id).set(1);
 		for(int i=0;i<N;i++)
-			if(turn[id]<turn[i])
-				turn[id]=turn[i];
-		turn[id]++;
+			if(turn.get(id).get()<turn.get(i).get())
+				turn.get(id).set(turn.get(i).get());
+		turn.get(id).incrementar();
 		for(int i=0;i<N;i++) if(i!=id) {
-			while(turn[i]!=0 && !op(id,i));
+			while(turn.get(i).get()!=0 && op(id,i));
 		}
+		System.out.println("the process "+Integer.toString(id)+" took the lock");
 	}
 
 	@Override
 	public void releaseLock(int id) {
-		turn[id] = 0;
+		System.out.println("the process "+Integer.toString(id)+" released the lock");
+		turn.get(id).set(0);
 	}
 
 }
