@@ -7,17 +7,21 @@ public class Main {
 		int M = 100;
 		int N = 100;
 		
-		Semaphore empty = new Semaphore(B);
-		Semaphore full = new Semaphore(0);
-		Semaphore mutexC = new Semaphore(1);
-		Semaphore mutexP = new Semaphore(1);
+        int numberReaders = 0;
+        int delayedReaders = 0;
+        int numberWriters = 0;
+        int delayedWriters = 0;
+
+		Semaphore testigo = new Semaphore(1);
+		Semaphore reader = new Semaphore(0);
+		Semaphore writer = new Semaphore(0);
 
 		Writer[] arrayProductores = new Writer[N];
 		Reader[] arrayConsumidores = new Reader[M];
-		Almacen almacen = new Almacen(B, mutexP, mutexC);
+		Almacen almacen = new Almacen(B);
 		
 		for(int i = 0; i < N; ++i) {
-			arrayProductores[i] = new Writer(empty, full, almacen, i);
+			arrayProductores[i] = new Writer(testigo, reader, writer, numberReaders, delayedReaders, numberWriters, delayedWriters, almacen, i);
 		}
 		
 		for(int i = 0; i < M; ++i) {
