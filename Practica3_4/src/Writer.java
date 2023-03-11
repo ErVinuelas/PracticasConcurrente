@@ -50,6 +50,7 @@ public class Writer extends Thread {
             testigo.release();  //Liberamos mutex
 
             almacen.escribir(new Producto(id), id);
+            System.out.println("El Reader " + id + " ha escrito " + id);
 
             try {
                 testigo.acquire();

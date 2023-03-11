@@ -25,7 +25,7 @@ public class Main {
 		}
 		
 		for(int i = 0; i < M; ++i) {
-			arrayConsumidores[i] = new Reader(empty, full, almacen, i);
+			arrayConsumidores[i] = new Reader(testigo, reader, writer, numberReaders, delayedReaders, numberWriters, delayedWriters, almacen, i);
 		}
 		
 		for(int i = 0; i < N; ++i) {
@@ -39,7 +39,6 @@ public class Main {
 			try {
 				arrayProductores[i].join();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -48,7 +47,6 @@ public class Main {
 			try {
 				arrayConsumidores[i].join();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

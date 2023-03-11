@@ -54,7 +54,8 @@ public class Reader extends Thread{
             if(delayedReaders > 0)  {   delayedReaders = delayedReaders - 1;    reader.release();   }   //Si hay readers esperando, despierto en cadena
             else    {   testigo.release();  }   //Sino, libero el mutex
 
-            almacen.leer(id);   //Elección arbitraria de la posición a leer
+            res = almacen.leer(id);   //Elección arbitraria de la posición a leer
+            System.out.println("El Reader " + id + " ha leido " + res);
 
             try {
                 testigo.acquire();

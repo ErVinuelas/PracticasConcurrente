@@ -1,5 +1,3 @@
-import java.util.concurrent.Semaphore;
-
 public class Almacen {
 	/**
 	* Almacena (como ultimo) un producto en el almacén. Si no hay

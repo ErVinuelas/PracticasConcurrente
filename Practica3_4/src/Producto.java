@@ -1,4 +1,3 @@
-
 public class Producto {
 	private int val;
 	public Producto(int val) {
