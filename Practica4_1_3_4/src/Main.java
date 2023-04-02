@@ -21,11 +21,11 @@ public class Main {
 		Almacen almacen = new Almacen(B);
 		
 		for(int i = 0; i < N; ++i) {
-			arrayProductores[i] = new Writer(testigo, reader, writer, numberReaders, delayedReaders, numberWriters, delayedWriters, almacen, i);
+			arrayProductores[i] = new Writer(almacen, i);
 		}
 		
 		for(int i = 0; i < M; ++i) {
-			arrayConsumidores[i] = new Reader(testigo, reader, writer, numberReaders, delayedReaders, numberWriters, delayedWriters, almacen, i);
+			arrayConsumidores[i] = new Reader(almacen, i);
 		}
 		
 		for(int i = 0; i < N; ++i) {
