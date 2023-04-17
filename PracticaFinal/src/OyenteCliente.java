@@ -1,48 +1,61 @@
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+
+import mensajes.Mensaje;
+import mensajes.MensajeConexion;
+import mensajes.TipoConexion;
 
 public class OyenteCliente extends Thread implements Runnable {
 
-	public OyenteCliente() {
-		// TODO Auto-generated constructor stub
+	protected Socket sc;
+	protected ObjectInputStream salidaServidor;
+	protected ObjectOutputStream salidaCliente;
+
+	public OyenteCliente(Socket sc) {
+		this.sc = sc;
+		System.out.println("iniciando hilo...");
+		try {
+			salidaCliente = new ObjectOutputStream(sc.getOutputStream());
+			salidaServidor = new ObjectInputStream(sc.getInputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("hilo iniciado");
 	}
 
-	public OyenteCliente(Runnable target) {
-		super(target);
-		// TODO Auto-generated constructor stub
-	}
-
-	public OyenteCliente(String name) {
-		super(name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public OyenteCliente(ThreadGroup group, Runnable target) {
-		super(group, target);
-		// TODO Auto-generated constructor stub
-	}
-
-	public OyenteCliente(ThreadGroup group, String name) {
-		super(group, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public OyenteCliente(Runnable target, String name) {
-		super(target, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public OyenteCliente(ThreadGroup group, Runnable target, String name) {
-		super(group, target, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public OyenteCliente(ThreadGroup group, Runnable target, String name, long stackSize) {
-		super(group, target, name, stackSize);
-		// TODO Auto-generated constructor stub
-	}
-
-	public OyenteCliente(ThreadGroup group, Runnable target, String name, long stackSize, boolean inheritThreadLocals) {
-		super(group, target, name, stackSize, inheritThreadLocals);
-		// TODO Auto-generated constructor stub
+	public void run() {
+		try {
+			boolean stop = false;
+			while (!stop) {
+				Mensaje m = (Mensaje) salidaServidor.readObject();
+				switch (m.getTipo()) {
+					case CONEXION:
+						MensajeConexion mc = (MensajeConexion) m;
+						if (mc.getMessage() == TipoConexion.ABRIR) {
+							System.out.println("Conexion iniciada");
+							salidaCliente.writeObject(new MensajeConexion(TipoConexion.ABRIR, true));
+						} else {
+							salidaCliente.writeObject(new MensajeConexion(TipoConexion.CERRAR, true));
+							stop = true;
+						}
+						break;
+					case LISTA:
+						break;
+					case PEDIR:
+						break;
+					default:
+						System.out.println("Mensaje no reconocido");
+				}
+			}
+			salidaServidor.close();
+		} catch (Exception e) {
+		}
 	}
 
 }
