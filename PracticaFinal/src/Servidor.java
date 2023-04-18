@@ -10,6 +10,10 @@ public class Servidor {
 	protected Set<Thread> threads;
 	protected ServerSocket ss;
 
+    public TreeMap<String, Usuario> userLst;
+    public TreeMap<String, Flujo> flujoLst; 
+
+
 	public Servidor(int port) {
 		threads = new TreeSet<Thread>();
 		try {
