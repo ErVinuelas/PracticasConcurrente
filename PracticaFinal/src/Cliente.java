@@ -18,6 +18,7 @@ public class Cliente {
 	protected PrintWriter fout;
 	protected BufferedReader fin;
 	protected Usuario yo;
+	protected HashMap<String, String> archivos;
 
 	public Cliente() {
 	}
@@ -26,14 +27,31 @@ public class Cliente {
 		String nombre, dir;
 		int port;
 		Scanner scan = new Scanner(System.in);
+
 		System.out.println("Introduce tu nombre:");
 		nombre = scan.nextLine();
+		yo=new Usuario(nombre, "localhost", 1000);
+
+		System.out.println("Quieres compartir algun archibo? (s/n)");
+		String respuesta = scan.nextLine();
+		while(respuesta.equals("s")){
+			System.out.println("Introduce el nombre del archivo:");
+			String archivo = scan.nextLine();
+			yo.addFile(archivo);
+			System.out.println("Introduce la ruta del archivo:");
+			String ruta = scan.nextLine();
+			archivos.put(archivo, ruta);
+			System.out.println("Quieres compartir otro archivo? (s/n)");
+			respuesta = scan.nextLine();
+		}
+
 		System.out.println("Introduce la direccion del servidor:");
 		dir = scan.nextLine();
+
 		System.out.println("Introduce el puerto del servidor:");
 		port = scan.nextInt();
+
 		Socket sc = new Socket(dir, port);
-		yo=new Usuario(nombre, "localhost", port);
 		Log.debug("Se inicia socket", sc);
 		OyenteServidor hilo = new OyenteServidor(sc, yo);
 		hilo.start();
