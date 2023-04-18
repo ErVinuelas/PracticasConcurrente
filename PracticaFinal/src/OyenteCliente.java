@@ -90,7 +90,7 @@ public class OyenteCliente extends Thread implements Runnable {
 						break;
                     case PREPARADO_CS:
                         //Mandamos mensaje de preparado con puerto e ip del emisor
-                        Servidor.flujoLst.get();
+                        fOut.writeObject(new MensajePreparadoSC(TipoConexion.PREPARADO_SC, true, Servidor.userLst.get(m.getFileName()).getIp(), Servidor.userLst.get(m.getFileName()).getPort()));
 					default:
 						Log.error("Mensaje no reconocido", sc);
 				}
