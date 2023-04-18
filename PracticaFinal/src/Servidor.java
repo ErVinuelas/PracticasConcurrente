@@ -15,6 +15,9 @@ public class Servidor {
     public TreeMap<String, Usuario> userLst;
     //public TreeMap<String, Flujo> flujoLst; 
 
+    public TreeMap<String, String> userToFile;
+    public TreeMap<String, String> fileToUser;
+
 
 	public Servidor(int port) {
 		threads = new TreeSet<Thread>();
