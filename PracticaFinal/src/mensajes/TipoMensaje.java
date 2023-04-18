@@ -1,5 +1,8 @@
 package mensajes;
 
 public enum TipoMensaje {
-	CONEXION, PEDIR, LISTA
+	CONEXION, 
+    PEDIR_FICHERO,
+    PEDIR_LISTA,
+    EMITIR_FICHERO
 }
