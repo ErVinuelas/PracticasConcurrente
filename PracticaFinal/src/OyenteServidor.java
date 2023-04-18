@@ -22,33 +22,31 @@ public class OyenteServidor extends Thread implements Runnable {
 	public OyenteServidor(Socket sc) {
 		this.sc = sc;
 		// this.servidor = servidor;
-		System.out.println("iniciando hilo...");
+		Log.debug("iniciando oyente", sc);
 		try {
 			salidaCliente = new ObjectInputStream(sc.getInputStream());
 			salidaServidor = new ObjectOutputStream(sc.getOutputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("hilo iniciado");
+		Log.debug("oyente iniciado", sc);
 		// this.id = id;
 	}
 
 	public void run() {
 		try {
-			System.out.println("Iniciando Conexion...");
+			Log.debug("Canal preparado", sc);
 			salidaServidor.writeObject(new MensajeConexion(TipoConexion.ABRIR, false));
 			while (true) {
 				Mensaje m = (Mensaje) salidaCliente.readObject();
 				switch (m.getTipo()) {
 					case CONEXION:
-						System.out.println("Conexion iniciada");
 						break;
 					case LISTA:
 						break;
 					case PEDIR:
 						break;
 					default:
-						System.out.println("Mensaje no reconocido");
 				}
 			}
 		} catch (Exception e) {
