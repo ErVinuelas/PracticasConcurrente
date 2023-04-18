@@ -19,14 +19,14 @@ public class OyenteCliente extends Thread implements Runnable {
 
 	public OyenteCliente(Socket sc) {
 		this.sc = sc;
-		System.out.println("iniciando hilo...");
+		Log.debug("iniciando oyente", sc);
 		try {
 			salidaCliente = new ObjectOutputStream(sc.getOutputStream());
 			salidaServidor = new ObjectInputStream(sc.getInputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("hilo iniciado");
+		Log.debug("oyente iniciado", sc);
 	}
 
 	public void run() {
@@ -38,9 +38,10 @@ public class OyenteCliente extends Thread implements Runnable {
 					case CONEXION:
 						MensajeConexion mc = (MensajeConexion) m;
 						if (mc.getMessage() == TipoConexion.ABRIR) {
-							System.out.println("Conexion iniciada");
+							Log.debug("Canal preparado", sc);
 							salidaCliente.writeObject(new MensajeConexion(TipoConexion.ABRIR, true));
 						} else {
+							Log.debug("Cerrando canal...", sc);
 							salidaCliente.writeObject(new MensajeConexion(TipoConexion.CERRAR, true));
 							stop = true;
 						}
@@ -50,9 +51,10 @@ public class OyenteCliente extends Thread implements Runnable {
 					case PEDIR:
 						break;
 					default:
-						System.out.println("Mensaje no reconocido");
+					Log.debug("Mensaje no reconocido", sc);
 				}
 			}
+			Log.debug("Canal Cerrado", sc);
 			salidaServidor.close();
 		} catch (Exception e) {
 		}
