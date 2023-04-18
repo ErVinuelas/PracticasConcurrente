@@ -14,15 +14,17 @@ import mensajes.TipoConexion;
 public class OyenteCliente extends Thread implements Runnable {
 
 	protected Socket sc;
-	protected ObjectInputStream salidaServidor;
-	protected volatile ObjectOutputStream salidaCliente;
+	protected ObjectInputStream fIn;
+	protected volatile ObjectOutputStream fOut;
 
-	public OyenteCliente(Socket sc) {
+	protected Usuario user;
+
+	public OyenteCliente(Socket sc, Usuario user) {
 		this.sc = sc;
 		Log.debug("iniciando oyente", sc);
 		try {
-			salidaCliente = new ObjectOutputStream(sc.getOutputStream());
-			salidaServidor = new ObjectInputStream(sc.getInputStream());
+			fOut = new ObjectOutputStream(sc.getOutputStream());
+			fIn = new ObjectInputStream(sc.getInputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -30,26 +32,32 @@ public class OyenteCliente extends Thread implements Runnable {
 	}
 
 	public ObjectOutputStream getFout() {
-		return salidaCliente;
+		return fOut;
 	}
 
 	public void run() {
 		try {
 			boolean stop = false;
+
 			while (!stop) {
-				Mensaje m = (Mensaje) salidaServidor.readObject();
+				Mensaje m = (Mensaje) fIn.readObject();
 				Log.debug("mensaje recibido de tipo " + m.getTipo().toString(), sc);
 				switch (m.getTipo()) {
 					case CONEXION:
+
 						MensajeConexion mc = (MensajeConexion) m;
 						if (mc.getMessage() == TipoConexion.ABRIR) {
 							Log.debug("Canal preparado", sc);
-							salidaCliente.writeObject(new MensajeConexion(TipoConexion.ABRIR, true));
+							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true));
+
+							// Actualizamos la tabla de usuarios
+							// Servidor.userLst.put(user, );
 						} else {
 							Log.debug("Cerrando canal...", sc);
-							salidaCliente.writeObject(new MensajeConexion(TipoConexion.CERRAR, true));
+							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true));
 							stop = true;
 						}
+
 						break;
 					case PEDIR_LISTA:
 						break;
@@ -62,12 +70,12 @@ public class OyenteCliente extends Thread implements Runnable {
 				}
 			}
 			Log.debug("Canal Cerrado", sc);
-			salidaServidor.close();
+			fIn.close();
 		} catch (Exception e) {
 			Log.error("error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
 			try {
-				salidaCliente.writeObject(new MensajeConexion(TipoConexion.CERRAR, false));
+				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false));
 			} catch (IOException e1) {
 				Log.error("Error cerrando conexion", sc);
 			}

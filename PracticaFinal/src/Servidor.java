@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class Servidor {
@@ -24,7 +25,7 @@ public class Servidor {
 			Socket sc;
 			try {
 				sc = ss.accept();
-				OyenteCliente oc = new OyenteCliente(sc);
+				OyenteCliente oc = new OyenteCliente(sc, null);
 				i++;
 				// serv.threads.add(oc);
 				oc.start();
