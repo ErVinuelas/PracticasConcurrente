@@ -16,18 +16,20 @@ import mensajes.TipoConexion;
 public class OyenteServidor extends Thread implements Runnable {
 
 	protected Socket sc;
-	protected ObjectInputStream salidaCliente;
-	protected ObjectOutputStream salidaServidor;
+	protected ObjectInputStream fIn;
+	protected ObjectOutputStream fOut;
 	// protected Servidor servidor;
 	protected int id;
+	protected Usuario user;
 
-	public OyenteServidor(Socket sc) {
+	public OyenteServidor(Socket sc, Usuario user) {
 		this.sc = sc;
+		this.user = user;
 		// this.servidor = servidor;
 		Log.debug("iniciando oyente", sc);
 		try {
-			salidaCliente = new ObjectInputStream(sc.getInputStream());
-			salidaServidor = new ObjectOutputStream(sc.getOutputStream());
+			fIn = new ObjectInputStream(sc.getInputStream());
+			fOut = new ObjectOutputStream(sc.getOutputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -36,25 +38,24 @@ public class OyenteServidor extends Thread implements Runnable {
 	}
 
 	public ObjectOutputStream getFout() {
-		return salidaServidor;
+		return fOut;
 	}
 
 	public void run() {
 		try {
 			boolean sigue = true;
-			salidaServidor.writeObject(new MensajeConexion(TipoConexion.ABRIR, false));
+			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user.getName()));
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
 			while (sigue) {
-				Mensaje m = (Mensaje) salidaCliente.readObject();
+				Mensaje m = (Mensaje) fIn.readObject();
 				switch (m.getTipo()) {
 					case CONEXION:
 						MensajeConexion mc = (MensajeConexion) m;
 						if (mc.getMessage() == TipoConexion.CERRAR) {
 							if (!mc.isACK()) {
 								Log.debug("Cerrando canal...", sc);
-								salidaServidor.writeObject(new MensajeConexion(TipoConexion.CERRAR, true));
-							}
-							else {
+								fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user.getName()));
+							} else {
 								Log.debug("Canal cerrado", sc);
 							}
 							sigue = false;
@@ -77,7 +78,7 @@ public class OyenteServidor extends Thread implements Runnable {
 			Log.error("error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
 			try {
-				salidaServidor.writeObject(new MensajeConexion(TipoConexion.CERRAR, false));
+				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user.getName()));
 			} catch (IOException e1) {
 				Log.error("Error cerrando conexion", sc);
 			}

@@ -40,25 +40,12 @@ public class Cliente {
 			try {
 				TimeUnit.SECONDS.sleep(1);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			oos.writeObject(new MensajeConexion(TipoConexion.CERRAR, false));
 			break;
 		}
 	}
-	/*
-	 * public String ask(String dir, int port, String file) {
-	 * try {
-	 * sc = new Socket(dir, port);
-	 * new OyenteCliente(sc).start();
-	 * return "";
-	 * } catch (Exception e) {
-	 * e.printStackTrace();
-	 * }
-	 * return "Error de conexion";
-	 * }
-	 */
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		Cliente cli = new Cliente();
