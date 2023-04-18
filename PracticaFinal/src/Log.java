@@ -16,4 +16,8 @@ public class Log {
             System.out.println(
                     "[Error] " + mensaje + " (ip: " + sc.getInetAddress().toString() + ", Port: " + sc.getPort() + ")");
     }
+
+    public static void console(String mensaje) {
+        System.out.print("|" + mensaje + "> ");
+    }
 }

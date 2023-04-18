@@ -13,7 +13,7 @@ public class Servidor {
 	protected ServerSocket ss;
 
     public TreeMap<String, Usuario> userLst;
-    public TreeMap<String, Flujo> flujoLst; 
+    //public TreeMap<String, Flujo> flujoLst; 
 
     public TreeMap<String, String> userToFile;
     public TreeMap<String, String> fileToUser;
