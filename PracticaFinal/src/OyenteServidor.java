@@ -9,6 +9,7 @@ import java.net.Socket;
 
 import javax.lang.model.util.ElementScanner6;
 
+import data.Usuario;
 import mensajes.Mensaje;
 import mensajes.MensajeConexion;
 import mensajes.TipoConexion;
@@ -44,7 +45,7 @@ public class OyenteServidor extends Thread implements Runnable {
 	public void run() {
 		try {
 			boolean sigue = true;
-			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user.getName()));
+			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user));
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
 			while (sigue) {
 				Mensaje m = (Mensaje) fIn.readObject();
@@ -54,7 +55,7 @@ public class OyenteServidor extends Thread implements Runnable {
 						if (mc.getMessage() == TipoConexion.CERRAR) {
 							if (!mc.isACK()) {
 								Log.debug("Cerrando canal...", sc);
-								fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user.getName()));
+								fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
 							} else {
 								Log.debug("Canal cerrado", sc);
 							}
@@ -78,7 +79,7 @@ public class OyenteServidor extends Thread implements Runnable {
 			Log.error("error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
 			try {
-				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user.getName()));
+				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user));
 			} catch (IOException e1) {
 				Log.error("Error cerrando conexion", sc);
 			}

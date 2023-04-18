@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import data.Usuario;
 import mensajes.MensajeConexion;
 import mensajes.TipoConexion;
 
@@ -16,6 +17,7 @@ public class Cliente {
 	protected Socket sc;
 	protected PrintWriter fout;
 	protected BufferedReader fin;
+	protected Usuario yo;
 
 	public Cliente() {
 	}
@@ -31,8 +33,9 @@ public class Cliente {
 		System.out.println("Introduce el puerto del servidor:");
 		port = scan.nextInt();
 		Socket sc = new Socket(dir, port);
+		yo=new Usuario(nombre, "localhost", port);
 		Log.debug("Se inicia socket", sc);
-		OyenteServidor hilo = new OyenteServidor(sc);
+		OyenteServidor hilo = new OyenteServidor(sc, yo);
 		hilo.start();
 		ObjectOutputStream oos = hilo.getFout();
 		System.out.println("--------------------");
@@ -44,7 +47,7 @@ public class Cliente {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			oos.writeObject(new MensajeConexion(TipoConexion.CERRAR, false));
+			oos.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));
 			break;
 		}
 	}

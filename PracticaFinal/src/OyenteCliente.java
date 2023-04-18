@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import data.Usuario;
 import mensajes.Mensaje;
 import mensajes.MensajeConexion;
 import mensajes.TipoConexion;
@@ -48,14 +49,13 @@ public class OyenteCliente extends Thread implements Runnable {
 						MensajeConexion mc = (MensajeConexion) m;
 						if (mc.getMessage() == TipoConexion.ABRIR) {
 							Log.debug("Canal preparado", sc);
-							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user.getNombre()));
+							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user));
 
 							// Actualizamos la tabla de usuarios
-							usuario = new Usuario(user.getNombre(), sc.getInetAddress(), sc.getPort());
-							Servidor.userLst.put(user);
+							Servidor.userLst.put(new Usuario(user.nombre, sc.getInetAddress().toString(), user.puerto));
 						} else {
 							Log.debug("Cerrando canal...", sc);
-							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user.getNombre()));
+							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
 							stop = true;
 						}
 
@@ -76,7 +76,7 @@ public class OyenteCliente extends Thread implements Runnable {
 			Log.error("error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
 			try {
-				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user.getNombre()));
+				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user));
 			} catch (IOException e1) {
 				Log.error("Error cerrando conexion", sc);
 			}
