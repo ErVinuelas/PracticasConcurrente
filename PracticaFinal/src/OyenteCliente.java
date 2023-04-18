@@ -15,20 +15,24 @@ public class OyenteCliente extends Thread implements Runnable {
 
 	protected Socket sc;
 	protected ObjectInputStream fIn;
-	protected ObjectOutputStream fOut;
+	protected volatile ObjectOutputStream fOut;
 
-    protected Usuario user;
+	protected Usuario user;
 
 	public OyenteCliente(Socket sc, Usuario user) {
 		this.sc = sc;
 		Log.debug("iniciando oyente", sc);
 		try {
-			salidaCliente = new ObjectOutputStream(sc.getOutputStream());
-			salidaServidor = new ObjectInputStream(sc.getInputStream());
+			fOut = new ObjectOutputStream(sc.getOutputStream());
+			fIn = new ObjectInputStream(sc.getInputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		Log.debug("oyente iniciado", sc);
+	}
+
+	public ObjectOutputStream getFout() {
+		return fOut;
 	}
 
 	public void run() {
@@ -36,36 +40,46 @@ public class OyenteCliente extends Thread implements Runnable {
 			boolean stop = false;
 
 			while (!stop) {
-				Mensaje m = (Mensaje) salidaServidor.readObject();
-
-				switch (m.getTipo()) {  //Distinguimos entre los diferentes tipos de mensajes
+				Mensaje m = (Mensaje) fIn.readObject();
+				Log.debug("mensaje recibido de tipo " + m.getTipo().toString(), sc);
+				switch (m.getTipo()) {
 					case CONEXION:
 
 						MensajeConexion mc = (MensajeConexion) m;
 						if (mc.getMessage() == TipoConexion.ABRIR) {
 							Log.debug("Canal preparado", sc);
-							salidaCliente.writeObject(new MensajeConexion(TipoConexion.ABRIR, true));
+							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user.getNombre()));
 
-                            //Actualizamos la tabla de usuarios
-                            Servidor.userLst.put(user, );
+							// Actualizamos la tabla de usuarios
+							usuario = new Usuario(user.getNombre(), sc.getInetAddress(), sc.getPort());
+							Servidor.userLst.put(user);
 						} else {
 							Log.debug("Cerrando canal...", sc);
-							salidaCliente.writeObject(new MensajeConexion(TipoConexion.CERRAR, true));
+							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user.getNombre()));
 							stop = true;
 						}
 
 						break;
-					case LISTA:
+					case PEDIR_LISTA:
 						break;
-					case PEDIR:
+					case PEDIR_FICHERO:
+						break;
+					case EMITIR_FICHERO:
 						break;
 					default:
-					Log.debug("Mensaje no reconocido", sc);
+						Log.error("Mensaje no reconocido", sc);
 				}
 			}
 			Log.debug("Canal Cerrado", sc);
-			salidaServidor.close();
+			fIn.close();
 		} catch (Exception e) {
+			Log.error("error inesperado, cerrando hilo", sc);
+			e.printStackTrace();
+			try {
+				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user.getNombre()));
+			} catch (IOException e1) {
+				Log.error("Error cerrando conexion", sc);
+			}
 		}
 	}
 

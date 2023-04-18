@@ -10,14 +10,10 @@ public class Servidor {
 	protected Set<Thread> threads;
 	protected ServerSocket ss;
 
-    //Son estáticos para que podamos acceder a ellos desde las clases de oyente.
-    public static TreeMap<String, Usuario> userLst;
-    public static TreeMap<String, Flujos> flujoList;
-
-	public Servidor() {
+	public Servidor(int port) {
 		threads = new TreeSet<Thread>();
 		try {
-			ss = new ServerSocket(1234);
+			ss = new ServerSocket(port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -29,7 +25,7 @@ public class Servidor {
 			Socket sc;
 			try {
 				sc = ss.accept();
-				OyenteCliente oc = new OyenteCliente(sc);
+				OyenteCliente oc = new OyenteCliente(sc, null);
 				i++;
 				// serv.threads.add(oc);
 				oc.start();
@@ -44,7 +40,7 @@ public class Servidor {
 	}
 
 	public static void main(String[] args) {
-		Servidor serv = new Servidor();
+		Servidor serv = new Servidor(4200);
 		serv.listen();
 	}
 
