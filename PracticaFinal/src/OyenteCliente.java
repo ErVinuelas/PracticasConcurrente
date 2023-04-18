@@ -11,11 +11,16 @@ import mensajes.Mensaje;
 import mensajes.MensajeConexion;
 import mensajes.TipoConexion;
 
+
+//TODO arreglar los booleanos de los mensajes,están mezclados
 public class OyenteCliente extends Thread implements Runnable {
 
 	protected Socket sc;
 	protected ObjectInputStream fIn;
 	protected volatile ObjectOutputStream fOut;
+
+    //Atributo que guarda el último mensaje que le llega a OyenteCliente
+    public volatile Mensaje lastMessage;
 
 	protected Usuario user;
 
@@ -42,6 +47,7 @@ public class OyenteCliente extends Thread implements Runnable {
 			while (!stop) {
 				Mensaje m = (Mensaje) fIn.readObject();
 				Log.debug("mensaje recibido de tipo " + m.getTipo().toString(), sc);
+
 				switch (m.getTipo()) {
 					case CONEXION:
 
@@ -70,8 +76,18 @@ public class OyenteCliente extends Thread implements Runnable {
                         // Decidir quien manda fichero(emisor)
                         String userId = Servidor.userToFile.get(m.getFileName());
 
+                        // Mandar mensaje al emisor para que cree el emisor
+                        Servidor.flujoLst.get(userId).writeObject(new MensajeEmitirFichero(TipoConexion.EMITIR_FICHERO, false, userId, m.getFileName()));
+                        
+                        //TODO: implementar semaforo para que controle que el Oyente quede pendiente del ultimo mensaje que le ha llegado al oyente cliente asociado
+                        //al cliente que va a emitir el fichero.
 
+                        // Mandar mensaje a receptor para que cree el receptore inicie conexion con la IP y el puerto que le vamos a pasar asociado al mensaje
+                        fOut.writeObject(new Mensaje(TipoConexion.PEDIR_FICHERO, true));
 						break;
+                    case PREPARADO_CS:
+                        //Mandamos mensaje de preparado con puerto e ip del emisor
+                        Servidor.flujoLst.get();
 					default:
 						Log.error("Mensaje no reconocido", sc);
 				}

@@ -5,5 +5,6 @@ public enum TipoMensaje {
     PEDIR_FICHERO,
     PEDIR_LISTA,
     EMITIR_FICHERO,
-    CONNECTIONPEERTOPEER
+    PREPARADO_CS,
+    PREPARADO_SC
 }
