@@ -9,8 +9,8 @@ import java.util.Scanner;
 public class Cliente {
 
 	protected Socket sc;
-	protected PrintWriter salidaCliente;
-	protected BufferedReader salidaServidor;
+	protected PrintWriter fout;
+	protected BufferedReader fin;
 
 	public Cliente() {
 
