@@ -15,7 +15,7 @@ public class OyenteCliente extends Thread implements Runnable {
 
 	protected Socket sc;
 	protected ObjectInputStream salidaServidor;
-	protected ObjectOutputStream salidaCliente;
+	protected volatile ObjectOutputStream salidaCliente;
 
 	public OyenteCliente(Socket sc) {
 		this.sc = sc;
@@ -29,11 +29,16 @@ public class OyenteCliente extends Thread implements Runnable {
 		Log.debug("oyente iniciado", sc);
 	}
 
+	public ObjectOutputStream getFout() {
+		return salidaCliente;
+	}
+
 	public void run() {
 		try {
 			boolean stop = false;
 			while (!stop) {
 				Mensaje m = (Mensaje) salidaServidor.readObject();
+				Log.debug("mensaje recibido de tipo " + m.getTipo().toString(), sc);
 				switch (m.getTipo()) {
 					case CONEXION:
 						MensajeConexion mc = (MensajeConexion) m;
@@ -46,17 +51,26 @@ public class OyenteCliente extends Thread implements Runnable {
 							stop = true;
 						}
 						break;
-					case LISTA:
+					case PEDIR_LISTA:
 						break;
-					case PEDIR:
+					case PEDIR_FICHERO:
+						break;
+					case EMITIR_FICHERO:
 						break;
 					default:
-					Log.debug("Mensaje no reconocido", sc);
+						Log.error("Mensaje no reconocido", sc);
 				}
 			}
 			Log.debug("Canal Cerrado", sc);
 			salidaServidor.close();
 		} catch (Exception e) {
+			Log.error("error inesperado, cerrando hilo", sc);
+			e.printStackTrace();
+			try {
+				salidaCliente.writeObject(new MensajeConexion(TipoConexion.CERRAR, false));
+			} catch (IOException e1) {
+				Log.error("Error cerrando conexion", sc);
+			}
 		}
 	}
 

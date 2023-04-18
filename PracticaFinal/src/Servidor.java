@@ -9,10 +9,10 @@ public class Servidor {
 	protected Set<Thread> threads;
 	protected ServerSocket ss;
 
-	public Servidor() {
+	public Servidor(int port) {
 		threads = new TreeSet<Thread>();
 		try {
-			ss = new ServerSocket(1234);
+			ss = new ServerSocket(port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -39,7 +39,7 @@ public class Servidor {
 	}
 
 	public static void main(String[] args) {
-		Servidor serv = new Servidor();
+		Servidor serv = new Servidor(4200);
 		serv.listen();
 	}
 
