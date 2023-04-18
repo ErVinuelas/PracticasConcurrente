@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -15,62 +16,97 @@ import mensajes.TipoConexion;
 public class Cliente {
 
 	protected Socket sc;
-	protected PrintWriter fout;
-	protected BufferedReader fin;
 	protected Usuario yo;
 	protected HashMap<String, String> archivos;
+	protected ObjectOutputStream fOut;
+	protected OyenteServidor hilo;
+	protected Scanner scan;
+	protected Semaphore viaLibre;
 
 	public Cliente() {
+		scan = new Scanner(System.in);
+		archivos = new HashMap<String, String>();
+		Semaphore viaLibre = new Semaphore(0);
 	}
 
-	public void interfaz() throws UnknownHostException, IOException {
+	public void init() throws UnknownHostException, IOException{
 		String nombre, dir;
 		int port;
-		Scanner scan = new Scanner(System.in);
 
-		System.out.println("Introduce tu nombre:");
+		Log.console("Introduce tu nombre");
 		nombre = scan.nextLine();
 		yo=new Usuario(nombre, "localhost", 1000);
 
-		System.out.println("Quieres compartir algun archibo? (s/n)");
+		Log.console("Quieres compartir algun archibo? (s/n)");
 		String respuesta = scan.nextLine();
 		while(respuesta.equals("s")){
-			System.out.println("Introduce el nombre del archivo:");
+			Log.console("Introduce el nombre del archivo");
 			String archivo = scan.nextLine();
 			yo.addFile(archivo);
-			System.out.println("Introduce la ruta del archivo:");
+			Log.console("Introduce la ruta del archivo");
 			String ruta = scan.nextLine();
 			archivos.put(archivo, ruta);
-			System.out.println("Quieres compartir otro archivo? (s/n)");
+			Log.console("Quieres compartir otro archivo? (s/n)");
 			respuesta = scan.nextLine();
 		}
 
-		System.out.println("Introduce la direccion del servidor:");
+		Log.console("Introduce la direccion del servidor");
 		dir = scan.nextLine();
 
-		System.out.println("Introduce el puerto del servidor:");
+		Log.console("Introduce el puerto del servidor");
 		port = scan.nextInt();
 
-		Socket sc = new Socket(dir, port);
-		Log.debug("Se inicia socket", sc);
-		OyenteServidor hilo = new OyenteServidor(sc, yo);
+		sc = new Socket(dir, port);
+		hilo = new OyenteServidor(sc, yo, viaLibre);
 		hilo.start();
-		ObjectOutputStream oos = hilo.getFout();
-		System.out.println("--------------------");
-		while (true) {
-			System.out.println("Introduce el nombre del archivo que quieres descargar:");
-			String archivo = scan.nextLine();
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		fOut = hilo.getFout();
+	}
+
+	public void loop() throws IOException{
+		boolean sigue = true;
+		while(sigue){
+			Log.console("Que quieres hacer?\n\t 1. Descargar un archivo\n\t 2. Ver Usuarios conectados\n\t 3. Salir \n");
+			int respuesta = scan.nextInt();
+			scan.nextLine();
+			switch(respuesta){
+				case 1:
+					Log.console("Introduce el nombre del archivo que quieres descargar");
+					String archivo = scan.nextLine();
+					viaLibre.acquire();
+					try {
+						TimeUnit.SECONDS.sleep(1);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					System.out.println("Ese seria tu madre");
+					break;
+				case 2:
+					fOut.writeObject(new MensajeSolicListaUsuar(TipoConexion.LISTAR, false, yo));
+					viaLibre.acquire();
+					/*for(Usuario u: hilo.getUsuarios()){
+						Log.console(u.nombre);
+					}*/
+					break;
+				case 3:
+					fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));
+					sigue = false;
+					break;
+				default:
+					System.out.println("Opcion no valida");
+					break;
 			}
-			oos.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));
-			break;
+
 		}
 	}
 
-	public static void main(String[] args) throws UnknownHostException, IOException {
+	public void interfaz() throws UnknownHostException, IOException, InterruptedException {
+		this.init();
+		System.out.println("--------------------");
+		this.loop();
+		hilo.join();
+	}
+
+	public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
 		Cliente cli = new Cliente();
 		cli.interfaz();
 	}

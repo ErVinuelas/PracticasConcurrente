@@ -52,7 +52,7 @@ public class OyenteCliente extends Thread implements Runnable {
 							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user));
 
 							// Actualizamos la tabla de usuarios
-							Servidor.userLst.put(new Usuario(user.nombre, sc.getInetAddress().toString(), user.puerto));
+							//Servidor.userLst.put(new Usuario(user.nombre, sc.getInetAddress().toString(), user.puerto));
 						} else {
 							Log.debug("Cerrando canal...", sc);
 							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));

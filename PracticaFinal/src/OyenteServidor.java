@@ -22,10 +22,12 @@ public class OyenteServidor extends Thread implements Runnable {
 	// protected Servidor servidor;
 	protected int id;
 	protected Usuario user;
+	protected Semaphore viaLibre;
 
-	public OyenteServidor(Socket sc, Usuario user) {
+	public OyenteServidor(Socket sc, Usuario user, Semaphore viaLibre) {
 		this.sc = sc;
 		this.user = user;
+		this.viaLibre = viaLibre;
 		// this.servidor = servidor;
 		Log.debug("iniciando oyente", sc);
 		try {
@@ -50,6 +52,7 @@ public class OyenteServidor extends Thread implements Runnable {
 			while (sigue) {
 				Mensaje m = (Mensaje) fIn.readObject();
 				switch (m.getTipo()) {
+
 					case CONEXION:
 						MensajeConexion mc = (MensajeConexion) m;
 						if (mc.getMessage() == TipoConexion.CERRAR) {
@@ -65,18 +68,30 @@ public class OyenteServidor extends Thread implements Runnable {
 							Log.debug("Canal preparado", sc);
 						}
 						break;
+
 					case PEDIR_LISTA:
+						MensajeSolicListaUsuar ms = (MensajeSolicListaUsuar) m;
+						if (!ms.isACK()) {
+							log.error("Error al solicitar lista de usuarios: yo no soy un servidor", sc);
+						} else {
+							Log.debug("Lista de usuarios recibida", sc);
+							System.out.println("Lista de usuarios: Tu madre");
+							viaLibre.release();
+						}
 						break;
+
 					case PEDIR_FICHERO:
 						break;
+
 					case EMITIR_FICHERO:
 						break;
+
 					default:
 						Log.error("Mensaje no reconocido", sc);
 				}
 			}
 		} catch (Exception e) {
-			Log.error("error inesperado, cerrando hilo", sc);
+			Log.error("Error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
 			try {
 				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user));
