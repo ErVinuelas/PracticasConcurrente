@@ -2,12 +2,17 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class Servidor {
 
 	protected Set<Thread> threads;
 	protected ServerSocket ss;
+
+    //Son estáticos para que podamos acceder a ellos desde las clases de oyente.
+    public static TreeMap<String, Usuario> userLst;
+    public static TreeMap<String, Flujos> flujoList;
 
 	public Servidor() {
 		threads = new TreeSet<Thread>();
