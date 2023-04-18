@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import data.Usuario;
+
 public class Servidor {
 
 	protected Set<Thread> threads;
