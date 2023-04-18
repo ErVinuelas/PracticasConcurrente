@@ -6,12 +6,14 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Semaphore;
 
 import javax.lang.model.util.ElementScanner6;
 
 import data.Usuario;
 import mensajes.Mensaje;
 import mensajes.MensajeConexion;
+import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
 
 public class OyenteServidor extends Thread implements Runnable {
@@ -72,7 +74,7 @@ public class OyenteServidor extends Thread implements Runnable {
 					case PEDIR_LISTA:
 						MensajeSolicListaUsuar ms = (MensajeSolicListaUsuar) m;
 						if (!ms.isACK()) {
-							log.error("Error al solicitar lista de usuarios: yo no soy un servidor", sc);
+							Log.error("Error al solicitar lista de usuarios: yo no soy un servidor", sc);
 						} else {
 							Log.debug("Lista de usuarios recibida", sc);
 							System.out.println("Lista de usuarios: Tu madre");
