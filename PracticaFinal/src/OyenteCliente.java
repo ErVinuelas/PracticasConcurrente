@@ -68,7 +68,9 @@ public class OyenteCliente extends Thread implements Runnable {
 						break;
 					case PEDIR_FICHERO:
                         // Decidir quien manda fichero(emisor)
-                        
+                        String userId = Servidor.userToFile.get(m.getFileName());
+
+
 						break;
 					default:
 						Log.error("Mensaje no reconocido", sc);
