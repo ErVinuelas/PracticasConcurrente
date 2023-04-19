@@ -12,15 +12,28 @@ public class Emisor extends Thread {
 		this.port = puerto;
 		this.IP = IP;
 		this.file = file;
-		try {
-			ss = new ServerSocket(port);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		ss = new ServerSocket(port);
 		
 		fOut = new ObjetOutputStream(ss.getOutputStream());
 		fIn = new ObjectInputStream(ss.getInputStream());
 	}
 	
-	public run 
+	public void run() {
+		Log.debug("Esperando al receptor...", ss);
+		Mensaje m  = (Mensaje) fIn.readObject();
+		
+		while(m.getTipo() != TipoMensaje.CONEXION) {
+			m = (Mensaje) fIn.readObject();
+		}
+		
+		MensajeConexion mc = (MensajeConexion) m;
+		if(mc.getTipo() != TipoConexion.ABRIR) {
+			//Aqui va un error
+		}
+		
+		//Mensaje de confirmación
+		fout.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, null));
+		//Cambiar constructor para añadir el nombre del archivo
+		fOut.writeObject(new MensajeArchivo(file, null, false));
+	}
 }
