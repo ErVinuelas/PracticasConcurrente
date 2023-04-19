@@ -23,4 +23,5 @@ public class Usuario implements Serializable {
     public void addFile(String nombre) {
         archivos.add(nombre);
     }
+    
 }

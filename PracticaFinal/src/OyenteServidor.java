@@ -82,14 +82,15 @@ public class OyenteServidor extends Thread implements Runnable {
 						}
 						break;
 
-					case PEDIR_FICHERO:
-						break;
-
 					case EMITIR_FICHERO:
-						Usuario userToConnect = Servidor.usrLst.
 						//Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que gestione
 						//la conexión p2p y devolvemos el nombre
+						
+						Emisor emisor = new Emisor(user.)
 						break;
+						
+					case PREPARADO_SC:
+						//Crear el receptor(nuevo thread)
 
 					default:
 						Log.error("Mensaje no reconocido", sc);
