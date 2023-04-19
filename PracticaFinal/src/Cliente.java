@@ -20,7 +20,7 @@ public class Cliente {
 
 	protected Socket sc;
 	protected Usuario yo;
-	protected HashMap<String, String> archivos;
+	public static HashMap<String, String> archivos;
 	protected ObjectOutputStream fOut;
 	protected OyenteServidor hilo;
 	protected Scanner scan;
@@ -60,7 +60,7 @@ public class Cliente {
 		port = scan.nextInt();
 
 		sc = new Socket(dir, port);
-		hilo = new OyenteServidor(sc, yo, viaLibre);
+		hilo = new OyenteServidor(sc, yo, viaLibre, this);
 		hilo.start();
 		fOut = hilo.getFout();
 	}
