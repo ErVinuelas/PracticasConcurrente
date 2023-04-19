@@ -12,12 +12,11 @@ public class Servidor {
 	protected static Set<Thread> threads;
 	protected static ServerSocket ss;
 
-    public static TreeMap<String, Usuario> userLst = new TreeMap<String, Usuario>();
-    //public TreeMap<String, Flujo> flujoLst; 
+	public static TreeMap<String, Usuario> userLst = new TreeMap<String, Usuario>();
+	// public TreeMap<String, Flujo> flujoLst;
 
-    public static TreeMap<String, String> userToFile = new TreeMap<String, String>();
-    public static TreeMap<String, String> fileToUser = new TreeMap<String, String>();
-
+	public static TreeMap<String, String> userToFile = new TreeMap<String, String>();
+	public static TreeMap<String, String> fileToUser = new TreeMap<String, String>();
 
 	public Servidor(int port) {
 		threads = new TreeSet<Thread>();

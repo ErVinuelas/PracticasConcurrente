@@ -15,7 +15,6 @@ import mensajes.MensajePedirFichero;
 import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
 
-
 //TODO arreglar los booleanos de los mensajes,están mezclados
 public class OyenteCliente extends Thread implements Runnable {
 
@@ -23,13 +22,12 @@ public class OyenteCliente extends Thread implements Runnable {
 	protected ObjectInputStream fIn;
 	protected volatile ObjectOutputStream fOut;
 
-    //Atributo que guarda el último mensaje que le llega a OyenteCliente
-    public volatile Mensaje lastMessage;
-
 	protected Usuario user;
 
 	public OyenteCliente(Socket sc, Usuario user) {
 		this.sc = sc;
+		this.user = user;
+
 		Log.debug("iniciando oyente", sc);
 		try {
 			fOut = new ObjectOutputStream(sc.getOutputStream());
@@ -38,10 +36,6 @@ public class OyenteCliente extends Thread implements Runnable {
 			e.printStackTrace();
 		}
 		Log.debug("oyente iniciado", sc);
-	}
-
-	public ObjectOutputStream getFout() {
-		return fOut;
 	}
 
 	public void run() {
@@ -56,6 +50,7 @@ public class OyenteCliente extends Thread implements Runnable {
 					case CONEXION:
 
 						MensajeConexion mc = (MensajeConexion) m;
+						
 						if (mc.getMessage() == TipoConexion.ABRIR) {
 							Log.debug("Canal preparado", sc);
 							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user));
@@ -71,6 +66,7 @@ public class OyenteCliente extends Thread implements Runnable {
 						}
 
 						break;
+						
 					case PEDIR_LISTA:
 						if(m.isACK()) {
 							Log.debug("He recibido una lista de usuarios, que hago con eso, me lo como?", sc);
@@ -96,8 +92,10 @@ public class OyenteCliente extends Thread implements Runnable {
 						Log.error("Mensaje no reconocido", sc);
 				}
 			}
+			
 			Log.debug("Canal Cerrado", sc);
 			fIn.close();
+			
 		} catch (Exception e) {
 			Log.error("error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
@@ -107,6 +105,10 @@ public class OyenteCliente extends Thread implements Runnable {
 				Log.error("Error cerrando conexion", sc);
 			}
 		}
+	}
+
+	public ObjectOutputStream getFout() {
+		return fOut;
 	}
 
 }

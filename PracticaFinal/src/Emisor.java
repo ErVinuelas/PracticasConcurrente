@@ -2,17 +2,19 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 public class Emisor extends Thread {
+	
 	private int port;
 	private String IP;
-	
 	private ServerSocket ss;
 	private String file;
+	private String fileName;
 	
-	public Emisor(int puerto, String IP, String file) {
+	public Emisor(int puerto, String IP, String file, String fileName) {
 		this.port = puerto;
 		this.IP = IP;
 		this.file = file;
-		ss = new ServerSocket(port);
+		this.fileName = fileName;
+		this.ss = new ServerSocket(port);
 		
 		fOut = new ObjetOutputStream(ss.getOutputStream());
 		fIn = new ObjectInputStream(ss.getInputStream());

@@ -11,11 +11,11 @@ public class MensajeSolicListaUsuar extends Mensaje implements Serializable {
 	private Map<String, Usuario> usuarios;
 
 	public MensajeSolicListaUsuar(Map<String, Usuario> usuarios, boolean ack) {
-		super(TipoMensaje.PEDIR_LISTA,ack);
-		this.usuarios=usuarios;
+		super(TipoMensaje.PEDIR_LISTA, ack);
+		this.usuarios = usuarios;
 	}
-	
+
 	public Map<String, Usuario> getUsuarios() {
 		return usuarios;
-	}	
+	}
 }

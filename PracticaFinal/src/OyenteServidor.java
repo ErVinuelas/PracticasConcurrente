@@ -26,7 +26,7 @@ public class OyenteServidor extends Thread implements Runnable {
 	protected int id;
 	protected Usuario user;
 	protected Cliente cliente;
-	
+
 	protected Semaphore viaLibre;
 
 	public OyenteServidor(Socket sc, Usuario user, Semaphore viaLibre, Cliente cliente) {
@@ -35,6 +35,7 @@ public class OyenteServidor extends Thread implements Runnable {
 		this.viaLibre = viaLibre;
 		this.cliente = cliente;
 		Log.debug("iniciando oyente", sc);
+
 		try {
 			fIn = new ObjectInputStream(sc.getInputStream());
 			fOut = new ObjectOutputStream(sc.getOutputStream());
@@ -42,70 +43,69 @@ public class OyenteServidor extends Thread implements Runnable {
 			e.printStackTrace();
 		}
 		Log.debug("oyente iniciado", sc);
-		// this.id = id;
-	}
-
-	public ObjectOutputStream getFout() {
-		return fOut;
 	}
 
 	public void run() {
 		try {
 			boolean sigue = true;
+
 			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user));
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
+
 			while (sigue) {
 				Mensaje m = (Mensaje) fIn.readObject();
 				switch (m.getTipo()) {
 
-					case CONEXION:
-						MensajeConexion mc = (MensajeConexion) m;
-						if (mc.getMessage() == TipoConexion.CERRAR) {
-							if (!mc.isACK()) {
-								Log.debug("Cerrando canal...", sc);
-								fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
-							} else {
-								Log.debug("Canal cerrado", sc);
-							}
-							sigue = false;
-							break;
+				case CONEXION:
+					MensajeConexion mc = (MensajeConexion) m;
+					if (mc.getMessage() == TipoConexion.CERRAR) {
+						if (!mc.isACK()) {
+							Log.debug("Cerrando canal...", sc);
+							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
 						} else {
-							Log.debug("Canal preparado", sc);
+							Log.debug("Canal cerrado", sc);
 						}
+						sigue = false;
 						break;
+					} else {
+						Log.debug("Canal preparado", sc);
+					}
+					break;
 
-					case PEDIR_LISTA:
-						MensajeSolicListaUsuar ms = (MensajeSolicListaUsuar) m;
-						if (!ms.isACK()) {
-							Log.error("Error al solicitar lista de usuarios: yo no soy un servidor", sc);
-						} else {
-							Map<String, Usuario> usrs = ms.getUsuarios();
-							Log.debug("Lista de usuarios recibida", sc);
-							for (Usuario u : usrs.values()) {
-								System.out.println("Usuario:\n" + u.toString());
-							}
-							viaLibre.release();
+				case PEDIR_LISTA:
+					MensajeSolicListaUsuar ms = (MensajeSolicListaUsuar) m;
+					if (!ms.isACK()) {
+						Log.error("Error al solicitar lista de usuarios: yo no soy un servidor", sc);
+					} else {
+						Map<String, Usuario> usrs = ms.getUsuarios();
+
+						Log.debug("Lista de usuarios recibida", sc);
+
+						for (Usuario u : usrs.values()) {
+							System.out.println("Usuario:\n" + u.toString());
 						}
-						break;
+						viaLibre.release();
+					}
+					break;
 
-					case EMITIR_FICHERO:
-						//Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que gestione
-						//la conexión p2p y devolvemos el nombre
-						
-						//Cargamos el mensaje a mandar para pasarselo al emisor
-						String file = cliente.archivos.get(m.getFileName());
-						
-						Emisor emisor = new Emisor(user.port, user.IP, file);
-						
-						fout.writeObject(new MensajePreparadoCS(m.getUserName(), user.IP, user.port, true));
-						break;
-						
-					case PREPARADO_SC:
-						//Crear el receptor(nuevo thread)
-						
+				case EMITIR_FICHERO:
+					// Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que
+					// gestione
+					// la conexión p2p y devolvemos el nombre
 
-					default:
-						Log.error("Mensaje no reconocido", sc);
+					// Cargamos el mensaje a mandar para pasarselo al emisor
+					String file = cliente.archivos.get(m.getFileName());
+
+					Emisor emisor = new Emisor(user.port, user.IP, file);
+
+					fout.writeObject(new MensajePreparadoCS(m.getUserName(), user.IP, user.port, true));
+					break;
+
+				case PREPARADO_SC:
+					// TODO Crear el receptor(nuevo thread)
+
+				default:
+					Log.error("Mensaje no reconocido", sc);
 				}
 			}
 		} catch (Exception e) {
@@ -121,6 +121,10 @@ public class OyenteServidor extends Thread implements Runnable {
 
 	public int hashCode() {
 		return id;
+	}
+
+	public ObjectOutputStream getFout() {
+		return fOut;
 	}
 
 }
