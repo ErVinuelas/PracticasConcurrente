@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import javax.lang.model.util.ElementScanner6;
@@ -76,8 +77,11 @@ public class OyenteServidor extends Thread implements Runnable {
 						if (!ms.isACK()) {
 							Log.error("Error al solicitar lista de usuarios: yo no soy un servidor", sc);
 						} else {
+							Map<String, Usuario> usrs = ms.getUsuarios();
 							Log.debug("Lista de usuarios recibida", sc);
-							System.out.println("Lista de usuarios: Tu madre");
+							for (Usuario u : usrs.values()) {
+								System.out.println("Usuario:\n" + u.toString());
+							}
 							viaLibre.release();
 						}
 						break;
