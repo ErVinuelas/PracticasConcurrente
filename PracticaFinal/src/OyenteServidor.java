@@ -22,16 +22,18 @@ public class OyenteServidor extends Thread implements Runnable {
 	protected Socket sc;
 	protected ObjectInputStream fIn;
 	protected ObjectOutputStream fOut;
-	// protected Servidor servidor;
+
 	protected int id;
 	protected Usuario user;
+	protected Cliente cliente;
+	
 	protected Semaphore viaLibre;
 
-	public OyenteServidor(Socket sc, Usuario user, Semaphore viaLibre) {
+	public OyenteServidor(Socket sc, Usuario user, Semaphore viaLibre, Cliente cliente) {
 		this.sc = sc;
 		this.user = user;
 		this.viaLibre = viaLibre;
-		// this.servidor = servidor;
+		this.cliente = cliente;
 		Log.debug("iniciando oyente", sc);
 		try {
 			fIn = new ObjectInputStream(sc.getInputStream());
@@ -90,11 +92,17 @@ public class OyenteServidor extends Thread implements Runnable {
 						//Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que gestione
 						//la conexión p2p y devolvemos el nombre
 						
-						Emisor emisor = new Emisor(user.)
+						//Cargamos el mensaje a mandar para pasarselo al emisor
+						String file = cliente.archivos.get(m.getFileName());
+						
+						Emisor emisor = new Emisor(user.port, user.IP, file);
+						
+						fout.writeObject(new MensajePreparadoCS(m.getUserName(), user.IP, user.port, true));
 						break;
 						
 					case PREPARADO_SC:
 						//Crear el receptor(nuevo thread)
+						
 
 					default:
 						Log.error("Mensaje no reconocido", sc);
