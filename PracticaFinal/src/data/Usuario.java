@@ -25,7 +25,12 @@ public class Usuario implements Serializable {
     }
 
     public String toString(){
-        return "\tNombre: " + nombre + "\n\tIP: " + IP + "\n\tPuerto: " + Integer.toString(puerto) + "\n\tNum archivos: " + archivos.size() + "\n";
+        String out = "\tNombre: " + nombre + "\n\tIP: " + IP + "\n\tPuerto: " + Integer.toString(puerto) + "\n\tNum archivos: " + archivos.size();
+        out = out+ "\n\tArchivos:\n";
+        for(String a : archivos) {
+        	out = out + "\t\t" + a + "\n";
+        }
+        return out;
     }
 
 }
