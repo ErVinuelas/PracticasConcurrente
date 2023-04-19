@@ -2,7 +2,7 @@ package mensajes;
 
 import java.io.Serializable;
 
-public class MensajePreparadoCS extends Mensaje implements Serializable{
+public class MensajePreparadoCS extends Mensaje implements Serializable {
 
     private static final long serialVersionUID = -5644148867784751333L;
     private int port;
@@ -23,4 +23,5 @@ public class MensajePreparadoCS extends Mensaje implements Serializable{
     public int getPort() {
     	return this.port;
     }
+
 }

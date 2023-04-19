@@ -11,14 +11,16 @@ import mensajes.MensajeConexion;
 import mensajes.TipoConexion;
 import mensajes.TipoMensaje;
 
-public class Receptor extends Thread{
+public class Receptor extends Thread {
+
+	private String IP;
+	private int puerto;
 	
-    private String IP;
-    private int puerto;
-    private Semaphore viaLibre;
-    private Socket sc;
-    private ObjectInputStream fIn;
-    private ObjectOutputStream fOut;
+	private Semaphore viaLibre;
+	private Socket sc;
+	
+	private ObjectInputStream fIn;
+	private ObjectOutputStream fOut;
 
     public Receptor(String IP, int puerto, Semaphore viaLibre){
         this.IP = IP;
