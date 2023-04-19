@@ -1,7 +1,7 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 
-public class Emisor {
+public class Emisor extends Thread {
 	private int port;
 	private String IP;
 	
@@ -17,5 +17,10 @@ public class Emisor {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		fOut = new ObjetOutputStream(ss.getOutputStream());
+		fIn = new ObjectInputStream(ss.getInputStream());
 	}
+	
+	public run 
 }
