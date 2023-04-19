@@ -10,5 +10,15 @@ public class MensajePreparadoCS extends Mensaje implements Serializable{
     public MensajePreparadoCS(String userId, String IP, int port, boolean ack) {
         super(TipoMensaje.PREPARADO_CS,ack);
         this.userId = userId;
+        this.IP = IP;
+        this.port = port;
     }    
+    
+    public String getIP() {
+    	return this.getIP();
+    }
+    
+    public int getPort() {
+    	return this.port;
+    }
 }
