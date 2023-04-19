@@ -14,12 +14,8 @@ public class MensajeEmitirFichero extends Mensaje implements Serializable {
         this.fileName = fileName;
         this.userId = userId;
     }
-	
-	public TipoConexion getMessage() {
-		return tipo;
-	}
 
-    public getFileName() {
+    public String getFileName() {
         return fileName;
     }
 

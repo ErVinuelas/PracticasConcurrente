@@ -12,7 +12,7 @@ public class MensajePedirFichero extends Mensaje implements Serializable {
         this.fileName = fileName;
 	}
     
-    public getFileName() {
+    public String getFileName() {
         return fileName;
     }
 

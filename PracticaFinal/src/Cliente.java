@@ -7,10 +7,13 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import data.Usuario;
 import mensajes.MensajeConexion;
+import mensajes.MensajePedirFichero;
+import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
 
 public class Cliente {
@@ -62,7 +65,7 @@ public class Cliente {
 		fOut = hilo.getFout();
 	}
 
-	public void loop() throws IOException{
+	public void loop() throws IOException, InterruptedException{
 		boolean sigue = true;
 		while(sigue){
 			Log.console("Que quieres hacer?\n\t 1. Descargar un archivo\n\t 2. Ver Usuarios conectados\n\t 3. Salir \n");
@@ -71,21 +74,13 @@ public class Cliente {
 			switch(respuesta){
 				case 1:
 					Log.console("Introduce el nombre del archivo que quieres descargar");
-					String archivo = scan.nextLine();
+					String archibo = scan.nextLine();
+					fOut.writeObject(new MensajePedirFichero(archibo, false));
 					viaLibre.acquire();
-					try {
-						TimeUnit.SECONDS.sleep(1);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					System.out.println("Ese seria tu madre");
 					break;
 				case 2:
-					fOut.writeObject(new MensajeSolicListaUsuar(TipoConexion.LISTAR, false, yo));
+					fOut.writeObject(new MensajeSolicListaUsuar(TipoConexion.CERRAR, false));
 					viaLibre.acquire();
-					/*for(Usuario u: hilo.getUsuarios()){
-						Log.console(u.nombre);
-					}*/
 					break;
 				case 3:
 					fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));

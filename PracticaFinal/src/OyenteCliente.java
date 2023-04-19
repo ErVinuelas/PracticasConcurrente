@@ -7,8 +7,11 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import data.Usuario;
 import mensajes.Mensaje;
 import mensajes.MensajeConexion;
+import mensajes.MensajeEmitirFichero;
+import mensajes.MensajePedirFichero;
 import mensajes.TipoConexion;
 
 
@@ -54,14 +57,14 @@ public class OyenteCliente extends Thread implements Runnable {
 						MensajeConexion mc = (MensajeConexion) m;
 						if (mc.getMessage() == TipoConexion.ABRIR) {
 							Log.debug("Canal preparado", sc);
-							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user.getNombre()));
+							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user));
 
 							// Actualizamos la tabla de usuarios
-							usuario = new Usuario(user.getNombre(), sc.getInetAddress(), sc.getPort());
+							Usuario usuario = new Usuario(user.nombre, sc.getInetAddress().toString(), user.puerto);
 							Servidor.userLst.put(user);
 						} else {
 							Log.debug("Cerrando canal...", sc);
-							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user.getNombre()));
+							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
 							stop = true;
 						}
 
@@ -70,20 +73,20 @@ public class OyenteCliente extends Thread implements Runnable {
                         //Mandamos la lista de usuarios
                         Log.debug("Mandando la lista de usuarios", sc);
                         fOut.writeObject(Servidor.userLst);
-                        fout.writeObject(new MensajePedirFichero(TipoConexion.PEDIR_FICHERO, true));
+                        fOut.writeObject(new MensajePedirFichero(TipoConexion.ABRIR, true));
 						break;
 					case PEDIR_FICHERO:
                         // Decidir quien manda fichero(emisor)
                         String userId = Servidor.userToFile.get(m.getFileName());
 
                         // Mandar mensaje al emisor para que cree el emisor
-                        Servidor.flujoLst.get(userId).writeObject(new MensajeEmitirFichero(TipoConexion.EMITIR_FICHERO, false, userId, m.getFileName()));
+                        Servidor.flujoLst.get(userId).writeObject(new MensajeEmitirFichero(TipoConexion.ABRIR, false, userId, m.getFileName()));
                         
                         //TODO: implementar semaforo para que controle que el Oyente quede pendiente del ultimo mensaje que le ha llegado al oyente cliente asociado
                         //al cliente que va a emitir el fichero.
 
                         // Mandar mensaje a receptor para que cree el receptore inicie conexion con la IP y el puerto que le vamos a pasar asociado al mensaje
-                        fOut.writeObject(new Mensaje(TipoConexion.PEDIR_FICHERO, true));
+                        fOut.writeObject(new Mensaje(TipoConexion.ABRIR, true));
 						break;
                     case PREPARADO_CS:
                         //Mandamos mensaje de preparado con puerto e ip del emisor
