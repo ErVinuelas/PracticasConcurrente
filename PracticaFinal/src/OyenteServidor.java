@@ -14,6 +14,7 @@ import javax.lang.model.util.ElementScanner6;
 import data.Usuario;
 import mensajes.Mensaje;
 import mensajes.MensajeConexion;
+import mensajes.MensajePreparadoSC;
 import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
 
@@ -102,7 +103,8 @@ public class OyenteServidor extends Thread implements Runnable {
 						
 					case PREPARADO_SC:
 						//Crear el receptor(nuevo thread)
-						
+						MensajePreparadoSC preparado = (MensajePreparadoSC) m;
+						Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), viaLibre);
 
 					default:
 						Log.error("Mensaje no reconocido", sc);

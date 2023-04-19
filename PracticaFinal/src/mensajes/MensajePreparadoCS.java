@@ -5,8 +5,10 @@ import java.io.Serializable;
 public class MensajePreparadoCS extends Mensaje implements Serializable{
 
     private static final long serialVersionUID = -5644148867784751333L;
-
+    private int port;
+    private String IP;
     private String userId;
+    
     public MensajePreparadoCS(String userId, String IP, int port, boolean ack) {
         super(TipoMensaje.PREPARADO_CS,ack);
         this.userId = userId;
@@ -15,7 +17,7 @@ public class MensajePreparadoCS extends Mensaje implements Serializable{
     }    
     
     public String getIP() {
-    	return this.getIP();
+    	return this.IP;
     }
     
     public int getPort() {
