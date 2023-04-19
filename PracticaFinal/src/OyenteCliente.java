@@ -84,11 +84,20 @@ public class OyenteCliente extends Thread implements Runnable {
 						
 					case PEDIR_FICHERO:
                         // Decidir quien manda fichero(emisor)
-                        
+                        String userId = Servidor.userToFile.get(m.getFileName());
+
+                        // Mandar mensaje al emisor para que cree el emisor
+                        Servidor.flujoLst.get(userId).writeObject(new MensajeEmitirFichero(TipoConexion.ABRIR, false, userId, m.getFileName()));
+
+                        //TODO: implementar semaforo para que controle que el Oyente quede pendiente del ultimo mensaje que le ha llegado al oyente cliente asociado
+                        //al cliente que va a emitir el fichero.
+
+                        // Mandar mensaje a receptor para que cree el receptore inicie conexion con la IP y el puerto que le vamos a pasar asociado al mensaje
+                        fOut.writeObject(new Mensaje(TipoConexion.ABRIR, true));
 						break;
                     case PREPARADO_CS:
                         //Mandamos mensaje de preparado con puerto e ip del emisor
-                        //fOut.writeObject(new MensajePreparadoSC(TipoConexion.PREPARADO_SC, true, Servidor.userLst.get(m.getFileName()).getIp(), Servidor.userLst.get(m.getFileName()).getPort()));
+                        fOut.writeObject(new MensajePreparadoSC(TipoConexion.PREPARADO_SC, true, Servidor.userLst.get(m.getFileName()).getIp(), Servidor.userLst.get(m.getFileName()).getPort()));
 					default:
 						Log.error("Mensaje no reconocido", sc);
 				}
