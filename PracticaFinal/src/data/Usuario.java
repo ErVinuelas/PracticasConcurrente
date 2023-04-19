@@ -13,7 +13,7 @@ public class Usuario implements Serializable {
     public int puerto;
     public ArrayList<String> archivos;
 
-    public Usuario(String IP, String nombre, int puerto) {
+    public Usuario(String nombre, String IP, int puerto) {
         this.IP = IP;
         this.nombre = nombre;
         this.puerto = puerto;
@@ -23,5 +23,9 @@ public class Usuario implements Serializable {
     public void addFile(String nombre) {
         archivos.add(nombre);
     }
-    
+
+    public String toString(){
+        return "\tNombre: " + nombre + "\n\tIP: " + IP + "\n\tPuerto: " + Integer.toString(puerto) + "\n\tNum archivos: " + archivos.size() + "\n";
+    }
+
 }

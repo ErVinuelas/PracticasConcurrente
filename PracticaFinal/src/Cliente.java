@@ -29,7 +29,7 @@ public class Cliente {
 	public Cliente() {
 		scan = new Scanner(System.in);
 		archivos = new HashMap<String, String>();
-		Semaphore viaLibre = new Semaphore(0);
+		viaLibre = new Semaphore(0);
 	}
 
 	public void init() throws UnknownHostException, IOException{
@@ -79,7 +79,7 @@ public class Cliente {
 					viaLibre.acquire();
 					break;
 				case 2:
-					fOut.writeObject(new MensajeSolicListaUsuar(TipoConexion.CERRAR, false));
+					fOut.writeObject(new MensajeSolicListaUsuar(null, false));
 					viaLibre.acquire();
 					break;
 				case 3:

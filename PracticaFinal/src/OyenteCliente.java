@@ -12,6 +12,7 @@ import mensajes.Mensaje;
 import mensajes.MensajeConexion;
 import mensajes.MensajeEmitirFichero;
 import mensajes.MensajePedirFichero;
+import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
 
 
@@ -58,10 +59,11 @@ public class OyenteCliente extends Thread implements Runnable {
 						if (mc.getMessage() == TipoConexion.ABRIR) {
 							Log.debug("Canal preparado", sc);
 							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user));
-
+							
 							// Actualizamos la tabla de usuarios
-							Usuario usuario = new Usuario(user.nombre, sc.getInetAddress().toString(), user.puerto);
-							Servidor.userLst.put(user);
+							Usuario usuario = mc.getUser();
+							usuario.IP = sc.getInetAddress().toString();
+							Servidor.userLst.put(usuario.nombre,usuario);
 						} else {
 							Log.debug("Cerrando canal...", sc);
 							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
@@ -70,27 +72,23 @@ public class OyenteCliente extends Thread implements Runnable {
 
 						break;
 					case PEDIR_LISTA:
-                        //Mandamos la lista de usuarios
-                        Log.debug("Mandando la lista de usuarios", sc);
-                        fOut.writeObject(Servidor.userLst);
-                        fOut.writeObject(new MensajePedirFichero(TipoConexion.ABRIR, true));
+						if(m.isACK()) {
+							Log.debug("He recibido una lista de usuarios, que hago con eso, me lo como?", sc);
+						}
+						else {
+							//Mandamos la lista de usuarios
+	                        Log.debug("Mandando la lista de usuarios", sc);
+	                        fOut.writeObject(new MensajeSolicListaUsuar(Servidor.userLst, true));
+						}
 						break;
+						
 					case PEDIR_FICHERO:
                         // Decidir quien manda fichero(emisor)
-                        String userId = Servidor.userToFile.get(m.getFileName());
-
-                        // Mandar mensaje al emisor para que cree el emisor
-                        Servidor.flujoLst.get(userId).writeObject(new MensajeEmitirFichero(TipoConexion.ABRIR, false, userId, m.getFileName()));
                         
-                        //TODO: implementar semaforo para que controle que el Oyente quede pendiente del ultimo mensaje que le ha llegado al oyente cliente asociado
-                        //al cliente que va a emitir el fichero.
-
-                        // Mandar mensaje a receptor para que cree el receptore inicie conexion con la IP y el puerto que le vamos a pasar asociado al mensaje
-                        fOut.writeObject(new Mensaje(TipoConexion.ABRIR, true));
 						break;
                     case PREPARADO_CS:
                         //Mandamos mensaje de preparado con puerto e ip del emisor
-                        fOut.writeObject(new MensajePreparadoSC(TipoConexion.PREPARADO_SC, true, Servidor.userLst.get(m.getFileName()).getIp(), Servidor.userLst.get(m.getFileName()).getPort()));
+                        //fOut.writeObject(new MensajePreparadoSC(TipoConexion.PREPARADO_SC, true, Servidor.userLst.get(m.getFileName()).getIp(), Servidor.userLst.get(m.getFileName()).getPort()));
 					default:
 						Log.error("Mensaje no reconocido", sc);
 				}
@@ -101,7 +99,7 @@ public class OyenteCliente extends Thread implements Runnable {
 			Log.error("error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
 			try {
-				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user.getNombre()));
+				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user));
 			} catch (IOException e1) {
 				Log.error("Error cerrando conexion", sc);
 			}

@@ -9,14 +9,14 @@ import data.Usuario;
 
 public class Servidor {
 
-	protected Set<Thread> threads;
-	protected ServerSocket ss;
+	protected static Set<Thread> threads;
+	protected static ServerSocket ss;
 
-    public TreeMap<String, Usuario> userLst;
+    public static TreeMap<String, Usuario> userLst = new TreeMap<String, Usuario>();
     //public TreeMap<String, Flujo> flujoLst; 
 
-    public TreeMap<String, String> userToFile;
-    public TreeMap<String, String> fileToUser;
+    public static TreeMap<String, String> userToFile = new TreeMap<String, String>();
+    public static TreeMap<String, String> fileToUser = new TreeMap<String, String>();
 
 
 	public Servidor(int port) {
@@ -44,7 +44,7 @@ public class Servidor {
 		}
 	}
 
-	public String getData(String key) {
+	public static String getData(String key) {
 		return "you have requested the data for key: " + key;
 	}
 
