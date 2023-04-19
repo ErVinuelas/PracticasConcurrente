@@ -102,7 +102,15 @@ public class OyenteServidor extends Thread implements Runnable {
 					break;
 
 				case PREPARADO_SC:
-					// TODO Crear el receptor(nuevo thread)
+					String IP = m.getIP();
+					int port = m.getPort();
+					
+					Receptor receptor = new Receptor(IP, port, this.viaLibre);
+					
+					//Suponemos que la transaccion se realiza correctamente
+					//Vamos a mandar mensaje para que se actualice la lista del servidor.
+					
+					fout.writeObject(new MensajeActualizarListaUsuarios())
 
 				default:
 					Log.error("Mensaje no reconocido", sc);

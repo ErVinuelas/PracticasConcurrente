@@ -88,7 +88,19 @@ public class OyenteCliente extends Thread implements Runnable {
                     case PREPARADO_CS:
                         //Mandamos mensaje de preparado con puerto e ip del emisor
                         fOut.writeObject(new MensajePreparadoSC(TipoConexion.PREPARADO_SC, true, m.getIP(), m.getPort());
-					default:
+					
+                        break;
+                    
+                    case ACTUALIZAR_LISTA_USUARIOS:
+                    	//Actualizamos la lista de usuarios
+                    	
+                    	Servidor.userLst.get(m.idCliente) = m.nombreArchivo;
+                    	
+                    	//También actualizamos la lista de dependencia
+                    	
+                    	Servidor.fileToUser.get(m.nombreArchivo) = m.idCliente;
+                        
+                    default:
 						Log.error("Mensaje no reconocido", sc);
 				}
 			}
