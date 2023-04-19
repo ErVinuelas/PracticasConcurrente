@@ -90,6 +90,9 @@ public class OyenteServidor extends Thread implements Runnable {
 						break;
 
 					case EMITIR_FICHERO:
+						Usuario userToConnect = Servidor.usrLst.
+						//Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que gestione
+						//la conexión p2p y devolvemos el nombre
 						break;
 
 					default:
