@@ -13,7 +13,7 @@ public class Servidor {
 	protected static ServerSocket ss;
 
 	public static TreeMap<String, Usuario> userLst = new TreeMap<String, Usuario>();
-	// public TreeMap<String, Flujo> flujoLst;
+	public static TreeMap<String, Flujos> flujoLst = new TreeMap<String, Flujos>();
 
 	public static TreeMap<String, String> userToFile = new TreeMap<String, String>();
 	public static TreeMap<String, String> fileToUser = new TreeMap<String, String>();

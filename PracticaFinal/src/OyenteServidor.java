@@ -13,7 +13,10 @@ import javax.lang.model.util.ElementScanner6;
 
 import data.Usuario;
 import mensajes.Mensaje;
+import mensajes.MensajeActualizarListaUsuarios;
 import mensajes.MensajeConexion;
+import mensajes.MensajeEmitirFichero;
+import mensajes.MensajePreparadoCS;
 import mensajes.MensajePreparadoSC;
 import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
@@ -89,41 +92,60 @@ public class OyenteServidor extends Thread implements Runnable {
 					}
 					break;
 
-					case EMITIR_FICHERO:
-						//Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que gestione
-						//la conexión p2p y devolvemos el nombre
-						
-						//Cargamos el mensaje a mandar para pasarselo al emisor
-						String file = cliente.archivos.get(m.getFileName());
-						
-						Emisor emisor = new Emisor(user.port, user.IP, file);
-						
-						fout.writeObject(new MensajePreparadoCS(m.getUserName(), user.IP, user.port, true));
-						break;
-						
-					case PREPARADO_SC:
-						//Crear el receptor(nuevo thread)
-						MensajePreparadoSC preparado = (MensajePreparadoSC) m;
-						Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), viaLibre);
-
-					// Cargamos el mensaje a mandar para pasarselo al emisor
-					String file = cliente.archivos.get(m.getFileName());
-
-					Emisor emisor = new Emisor(user.port, user.IP, file);
-
-					fout.writeObject(new MensajePreparadoCS(m.getUserName(), user.IP, user.port, true));
+				case EMITIR_FICHERO:
+					
+					MensajeEmitirFichero mef = (MensajeEmitirFichero)m;
+					
+					//Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que gestione
+					//la conexión p2p y devolvemos el nombre
+					
+					//Cargamos el mensaje a mandar para pasarselo al emisor
+					String file = cliente.archivos.get(mef.getFileName());
+					user.puerto+=1;
+					
+					
+					Log.debug("Se ha pedido el archivo "+ mef.getFileName() + " que contiene " + file, sc);
+					Emisor emisor = new Emisor(user.puerto, file, mef.getFileName());
+					Log.debug("Se inicia un emisor con puerto "+ user.puerto, sc);
+					emisor.start();
+					
+					fOut.writeObject(new MensajePreparadoCS(mef.getUser(), user.IP, user.puerto, mef.getFileName()));
+					break;
+					
+				case PREPARADO_SC:
+					//Crear el receptor(nuevo thread)
+					MensajePreparadoSC preparado = (MensajePreparadoSC) m;
+					//Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), viaLibre);
+					
+					Log.debug("El archivo " + preparado.getFileName() + " esta listo en ip " + preparado.getIP() + ":" + preparado.getPort(), sc);
+		
+					Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), this.viaLibre);
+					receptor.start();
+		
+					fOut.writeObject(new MensajeActualizarListaUsuarios(user.nombre, preparado.getFileName(), false));
+					
+					//fOut.writeObject(new MensajePreparadoSC(preparado, user.puerto, preparado.getFileName()));
 					break;
 
-				case PREPARADO_SC:
-					String IP = m.getIP();
-					int port = m.getPort();
+				/*case PREPARADO_CS:
 					
-					Receptor receptor = new Receptor(IP, port, this.viaLibre);
+					MensajePreparadoCS mp = (MensajePreparadoCS) m;
+					
+					String IP = mp.getIP();
+					int port = mp.getPort();
 					
 					//Suponemos que la transaccion se realiza correctamente
 					//Vamos a mandar mensaje para que se actualice la lista del servidor.
 					
-					fout.writeObject(new MensajeActualizarListaUsuarios())
+					
+					
+					break;*/
+					
+				case ACTUALIZAR_LISTA:
+					if(m.isACK()) {
+						Log.debug("Lista actualizada con exito", sc);
+						break;
+					}
 
 				default:
 					Log.error("Mensaje no reconocido", sc);

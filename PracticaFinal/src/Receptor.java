@@ -60,6 +60,9 @@ public class Receptor extends Thread {
 	        if(m.getTipo()!=TipoMensaje.CONEXION || !((MensajeConexion) m).isACK() || ((MensajeConexion) m).getMessage()!=TipoConexion.CERRAR){
 	           
 	        }
+	        fOut.flush();
+	        fOut.close();
+	        fIn.close();
 	        sc.close();
     	}catch(Exception e) {
     		e.printStackTrace();

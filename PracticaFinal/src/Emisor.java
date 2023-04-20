@@ -1,41 +1,64 @@
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
+import java.net.Socket;
+
+import mensajes.Mensaje;
+import mensajes.MensajeArchivo;
+import mensajes.MensajeConexion;
+import mensajes.TipoConexion;
+import mensajes.TipoMensaje;
 
 public class Emisor extends Thread {
 	
 	private int port;
-	private String IP;
 	private ServerSocket ss;
 	private String file;
 	private String fileName;
 	
-	public Emisor(int puerto, String IP, String file, String fileName) {
+	protected ObjectInputStream fIn;
+	protected volatile ObjectOutputStream fOut;
+	
+	public Emisor(int puerto, String file, String fileName) throws IOException {
 		this.port = puerto;
-		this.IP = IP;
 		this.file = file;
 		this.fileName = fileName;
-		this.ss = new ServerSocket(port);
-		
-		fOut = new ObjetOutputStream(ss.getOutputStream());
-		fIn = new ObjectInputStream(ss.getInputStream());
 	}
 	
 	public void run() {
-		Log.debug("Esperando al receptor...", ss);
-		Mensaje m  = (Mensaje) fIn.readObject();
-		
-		while(m.getTipo() != TipoMensaje.CONEXION) {
+		try {
+			this.ss = new ServerSocket(port);
+			Socket s = ss.accept();
+			
+			fOut = new ObjectOutputStream(s.getOutputStream());
+			fIn = new ObjectInputStream(s.getInputStream());
+			
+			Mensaje m  = (Mensaje) fIn.readObject();
+			Log.debug("Esperando al receptor...", s);
+			
+			if(m.getTipo() != TipoMensaje.CONEXION || m.isACK() || ((MensajeConexion) m).getMessage() != TipoConexion.ABRIR) {
+				
+			}
+			
+			//Mensaje de confirmación
+			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, null));
+			
+			//Cambiar constructor para añadir el nombre del archivo
+			fOut.writeObject(new MensajeArchivo(file, fileName, false));
+			
 			m = (Mensaje) fIn.readObject();
+	        if(m.getTipo()!=TipoMensaje.CONEXION || ((MensajeConexion) m).isACK() || ((MensajeConexion) m).getMessage()!=TipoConexion.CERRAR){
+	           
+	        }
+	        fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, null));
+	        fOut.flush();
+	        fOut.close();
+	        fIn.close();
+	        s.close();
+	        ss.close();
+		}catch(Exception e) {
+			
 		}
-		
-		MensajeConexion mc = (MensajeConexion) m;
-		if(mc.getTipo() != TipoConexion.ABRIR) {
-			//Aqui va un error
-		}
-		
-		//Mensaje de confirmación
-		fout.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, null));
-		//Cambiar constructor para añadir el nombre del archivo
-		fOut.writeObject(new MensajeArchivo(file, null, false));
 	}
 }

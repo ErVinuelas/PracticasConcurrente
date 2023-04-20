@@ -23,7 +23,7 @@ public class Cliente {
 	// Guarda los archivos y su dirección asociada, nosotros almacenamos
 	// directamente el string que hay
 	// asociado a un nombre de fichero.
-	public static HashMap<String, String> archivos;
+	public HashMap<String, String> archivos;
 
 	// Información del usuario que hay asociado al cliente.
 	protected Usuario yo;
@@ -56,7 +56,7 @@ public class Cliente {
 		Log.console("Introduce tu nombre");
 		nombre = scan.nextLine();
 
-		yo = new Usuario(nombre, "localhost", 1000);
+		yo = new Usuario(nombre, "localhost", 5000);
 
 		Log.console("Quieres compartir algun archibo? (s/n)");
 		String respuesta = scan.nextLine();

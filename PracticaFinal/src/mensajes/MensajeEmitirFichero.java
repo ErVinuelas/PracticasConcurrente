@@ -19,4 +19,8 @@ public class MensajeEmitirFichero extends Mensaje implements Serializable {
 		return fileName;
 	}
 
+	public String getUser() {
+		return userId;
+	}
+
 }
