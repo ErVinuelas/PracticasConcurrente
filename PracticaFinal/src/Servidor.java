@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -15,8 +16,7 @@ public class Servidor {
 	public static TreeMap<String, Usuario> userLst = new TreeMap<String, Usuario>();
 	public static TreeMap<String, Flujos> flujoLst = new TreeMap<String, Flujos>();
 
-	public static TreeMap<String, String> userToFile = new TreeMap<String, String>();
-	public static TreeMap<String, String> fileToUser = new TreeMap<String, String>();
+	public static TreeMap<String, Set<String>> fileToUser = new TreeMap<String, Set<String>>();
 
 	public Servidor(int port) {
 		threads = new TreeSet<Thread>();

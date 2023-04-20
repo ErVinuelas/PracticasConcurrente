@@ -39,23 +39,23 @@ public class OyenteServidor extends Thread implements Runnable {
 		this.viaLibre = viaLibre;
 		this.cliente = cliente;
 		Log.debug("iniciando oyente", sc);
-
-		try {
-			fIn = new ObjectInputStream(sc.getInputStream());
-			fOut = new ObjectOutputStream(sc.getOutputStream());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		Log.debug("oyente iniciado", sc);
 	}
 
 	public void run() {
 		try {
 			boolean sigue = true;
-
+			fOut = new ObjectOutputStream(sc.getOutputStream());
 			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user));
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
+			fIn = new ObjectInputStream(sc.getInputStream());
+			MensajeConexion mc1 = (MensajeConexion) fIn.readObject();
 
+			if (!(mc1.getMessage() == TipoConexion.ABRIR && mc1.isACK())) {
+				Log.error("Mensaje inesperado al iniciar conexion con el servidor, se cancela comunicación", sc);
+				throw new Exception();
+			}
+			viaLibre.release();
+			
 			while (sigue) {
 				Mensaje m = (Mensaje) fIn.readObject();
 				switch (m.getTipo()) {
@@ -70,10 +70,7 @@ public class OyenteServidor extends Thread implements Runnable {
 							Log.debug("Canal cerrado", sc);
 						}
 						sigue = false;
-						break;
-					} else {
-						Log.debug("Canal preparado", sc);
-					}
+					} 
 					break;
 
 				case PEDIR_LISTA:
@@ -119,27 +116,14 @@ public class OyenteServidor extends Thread implements Runnable {
 					
 					Log.debug("El archivo " + preparado.getFileName() + " esta listo en ip " + preparado.getIP() + ":" + preparado.getPort(), sc);
 		
-					Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), this.viaLibre);
+					//Log.debug(,sc);
+					Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), this.viaLibre, this.cliente);
 					receptor.start();
 		
 					fOut.writeObject(new MensajeActualizarListaUsuarios(user.nombre, preparado.getFileName(), false));
 					
 					//fOut.writeObject(new MensajePreparadoSC(preparado, user.puerto, preparado.getFileName()));
 					break;
-
-				/*case PREPARADO_CS:
-					
-					MensajePreparadoCS mp = (MensajePreparadoCS) m;
-					
-					String IP = mp.getIP();
-					int port = mp.getPort();
-					
-					//Suponemos que la transaccion se realiza correctamente
-					//Vamos a mandar mensaje para que se actualice la lista del servidor.
-					
-					
-					
-					break;*/
 					
 				case ACTUALIZAR_LISTA:
 					if(m.isACK()) {

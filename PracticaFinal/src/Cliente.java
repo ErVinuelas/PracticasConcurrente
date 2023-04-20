@@ -48,7 +48,7 @@ public class Cliente {
 	}
 
 	// Inicializamos el cliented
-	public void init() throws UnknownHostException, IOException {
+	public void init() throws UnknownHostException, IOException, InterruptedException {
 		String nombre, dir;
 		int port;
 
@@ -84,6 +84,7 @@ public class Cliente {
 		sc = new Socket(dir, port);
 		hilo = new OyenteServidor(sc, yo, viaLibre, this);
 		hilo.start();
+		viaLibre.acquire();
 		fOut = hilo.getFout();
 	}
 

@@ -18,18 +18,18 @@ public class Receptor extends Thread {
 	
 	private Semaphore viaLibre;
 	private Socket sc;
+	private Cliente cli;
 	
 	private ObjectInputStream fIn;
 	private ObjectOutputStream fOut;
 
-    public Receptor(String IP, int puerto, Semaphore viaLibre){
+    public Receptor(String IP, int puerto, Semaphore viaLibre, Cliente cli){
         this.IP = IP;
         this.puerto = puerto;
         this.viaLibre = viaLibre;
+        this.cli=cli;
         try {
 			sc = new Socket(IP, puerto);
-			fIn = new ObjectInputStream(sc.getInputStream());
-	        fOut = new ObjectOutputStream(sc.getOutputStream());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -37,8 +37,10 @@ public class Receptor extends Thread {
 
     public void run(){
     	try {
+    		fOut = new ObjectOutputStream(sc.getOutputStream());
 	        fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, null));
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
+			fIn = new ObjectInputStream(sc.getInputStream());
 	        Mensaje m = (Mensaje) fIn.readObject();
 	        if(m.getTipo()!=TipoMensaje.CONEXION){
 	            
@@ -54,6 +56,7 @@ public class Receptor extends Thread {
 	        MensajeArchivo ma = (MensajeArchivo) m;
 	        System.out.println("Archivo: " + ma.getNombreArchivo());
 	        System.out.println("Mensaje: " + ma.getMensaje() + "\n");
+	        cli.archivos.put(ma.getNombreArchivo(), ma.getMensaje());
 	        viaLibre.release();
 	        fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, null));
 	        m = (Mensaje) fIn.readObject();

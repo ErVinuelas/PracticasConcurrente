@@ -6,6 +6,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.TreeSet;
 
 import data.Usuario;
 import mensajes.Mensaje;
@@ -27,25 +29,19 @@ public class OyenteCliente extends Thread implements Runnable {
 	protected volatile ObjectOutputStream fOut;
 
 	protected Usuario user;
-	protected Usuario usuario;
+	protected String usuario;
 
 	public OyenteCliente(Socket sc, Usuario user) {
 		this.sc = sc;
 		this.user = user;
 
 		Log.debug("iniciando oyente", sc);
-		try {
-			fOut = new ObjectOutputStream(sc.getOutputStream());
-			fIn = new ObjectInputStream(sc.getInputStream());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		Log.debug("oyente iniciado", sc);
 	}
 
 	public void run() {
 		try {
 			boolean stop = false;
+			fIn = new ObjectInputStream(sc.getInputStream());
 
 			while (!stop) {
 				Mensaje m = (Mensaje) fIn.readObject();
@@ -57,19 +53,34 @@ public class OyenteCliente extends Thread implements Runnable {
 						MensajeConexion mc = (MensajeConexion) m;
 						
 						if (mc.getMessage() == TipoConexion.ABRIR) {
+							fOut = new ObjectOutputStream(sc.getOutputStream());
 							Log.debug("Canal preparado", sc);
 							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, user));
 							
 							// Actualizamos la tabla de usuarios
-							usuario = mc.getUser();
-							usuario.IP = sc.getInetAddress().toString();
-							Servidor.userLst.put(usuario.nombre,usuario);
-							Servidor.flujoLst.put(usuario.nombre, new Flujos(fIn, fOut));
-							for(String arc : usuario.archivos) {
-								Servidor.fileToUser.put(arc, usuario.nombre);
+							usuario = mc.getUser().nombre;
+							Usuario auxuser = mc.getUser();
+							auxuser.IP = sc.getInetAddress().toString();
+							Servidor.userLst.put(auxuser.nombre,auxuser);
+							Servidor.flujoLst.put(auxuser.nombre, new Flujos(fIn, fOut));
+							for(String arc : auxuser.archivos) {
+								if(!Servidor.fileToUser.containsKey(arc))
+									Servidor.fileToUser.put(arc, new TreeSet<String>());
+								Servidor.fileToUser.get(arc).add(auxuser.nombre);
 							}
 						} else {
 							Log.debug("Cerrando canal...", sc);
+							Usuario exitUser = mc.getUser();
+							Servidor.userLst.remove(exitUser.nombre);
+							//retiramos sus archivos
+							for(String file : exitUser.archivos) 
+								if(Servidor.fileToUser.get(file).size()>=0){
+									Servidor.fileToUser.get(file).remove(exitUser.nombre);
+									if(Servidor.fileToUser.get(file).size()==0) {
+										Servidor.fileToUser.remove(file);
+									}
+								}
+							
 							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
 							fOut.flush();
 							fOut.close();
@@ -96,11 +107,11 @@ public class OyenteCliente extends Thread implements Runnable {
 						MensajePedirFichero mf = (MensajePedirFichero)m;
 						
                         // Decidir quien manda fichero(emisor)
-                        String userId = Servidor.fileToUser.get(mf.getFileName());
+                        String userId = Servidor.fileToUser.get(mf.getFileName()).iterator().next();
                         Log.debug("pedido " + mf.getFileName() + " que pertenece a " + userId, sc);
 
                         // Mandar mensaje al emisor para que cree el emisor
-                        Servidor.flujoLst.get(userId).getFout().writeObject(new MensajeEmitirFichero(mf.getFileName(), usuario.nombre, false));
+                        Servidor.flujoLst.get(userId).getFout().writeObject(new MensajeEmitirFichero(mf.getFileName(), usuario, false));
 						break;
 						
                     case PREPARADO_CS:
@@ -116,13 +127,18 @@ public class OyenteCliente extends Thread implements Runnable {
                     	
                     	MensajeActualizarListaUsuarios ma = (MensajeActualizarListaUsuarios)m;
                     	
-                    	//Actualizamos la lista de usuarios
+                    	Log.debug(ma.idCliente + " ha incorporado a sus archivos " + ma.nombreArchivo, sc);
                     	
+                    	//Actualizamos la lista de usuarios
                     	Servidor.userLst.get(ma.idCliente).addFile(ma.nombreArchivo);
                     	
                     	//También actualizamos la lista de dependencia
                     	
-                    	//Servidor.fileToUser.get(ma.nombreArchivo) = ma.idCliente;
+                    	if(!Servidor.fileToUser.containsKey(ma.nombreArchivo))
+							Servidor.fileToUser.put(ma.nombreArchivo, new TreeSet<String>());
+                    	Servidor.fileToUser.get(ma.nombreArchivo).add(usuario);
+                    	
+                    	//avisamos de que se ha completado con exito
                     	
                     	fOut.writeObject(new MensajeActualizarListaUsuarios(ma.idCliente, ma.nombreArchivo, true));
                         
@@ -138,9 +154,25 @@ public class OyenteCliente extends Thread implements Runnable {
 			Log.error("error inesperado, cerrando hilo", sc);
 			e.printStackTrace();
 			try {
-				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, user));
+				Usuario exitUser = Servidor.userLst.get(usuario);
+				Servidor.userLst.remove(usuario);
+				//retiramos sus archivos
+				for(String file : exitUser.archivos) 
+					if(Servidor.fileToUser.get(file).size()>=0){
+						Servidor.fileToUser.get(file).remove(exitUser.nombre);
+						if(Servidor.fileToUser.get(file).size()==0) {
+							Servidor.fileToUser.remove(file);
+						}
+					}
+				
+				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
+				fOut.flush();
+				fOut.close();
+				fIn.close();
+				sc.close();
 			} catch (IOException e1) {
 				Log.error("Error cerrando conexion", sc);
+				
 			}
 		}
 	}

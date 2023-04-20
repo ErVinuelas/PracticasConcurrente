@@ -31,17 +31,17 @@ public class Emisor extends Thread {
 			this.ss = new ServerSocket(port);
 			Socket s = ss.accept();
 			
-			fOut = new ObjectOutputStream(s.getOutputStream());
 			fIn = new ObjectInputStream(s.getInputStream());
 			
 			Mensaje m  = (Mensaje) fIn.readObject();
-			Log.debug("Esperando al receptor...", s);
 			
 			if(m.getTipo() != TipoMensaje.CONEXION || m.isACK() || ((MensajeConexion) m).getMessage() != TipoConexion.ABRIR) {
 				
 			}
 			
+			Log.debug("Esperando al receptor...", s);
 			//Mensaje de confirmación
+			fOut = new ObjectOutputStream(s.getOutputStream());
 			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, null));
 			
 			//Cambiar constructor para añadir el nombre del archivo
