@@ -12,10 +12,10 @@ public class Servidor {
 
 	protected ServerSocket ss;
 
-	public TreeMap<String, Usuario> userLst = new TreeMap<String, Usuario>();
-	public TreeMap<String, Flujos> flujoLst = new TreeMap<String, Flujos>();
+	public volatile TreeMap<String, Usuario> userLst = new TreeMap<String, Usuario>();
+	public volatile TreeMap<String, Flujos> flujoLst = new TreeMap<String, Flujos>();
 
-	public TreeMap<String, Set<String>> fileToUser = new TreeMap<String, Set<String>>();
+	public volatile TreeMap<String, Set<String>> fileToUser = new TreeMap<String, Set<String>>();
 
 	public Servidor(int port) {
 		try {

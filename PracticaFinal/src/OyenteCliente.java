@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import data.Usuario;
@@ -56,6 +57,8 @@ public class OyenteCliente extends Thread implements Runnable {
 							fOut = new ObjectOutputStream(sc.getOutputStream());
 							Log.debug("Canal preparado", sc);
 							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, null));
+							fOut.flush();
+							fOut.reset();
 							
 							// Actualizamos la tabla de usuarios
 							usuario = mc.getUser().nombre;
@@ -98,7 +101,13 @@ public class OyenteCliente extends Thread implements Runnable {
 						else {
 							//Mandamos la lista de usuarios
 	                        Log.debug("Mandando la lista de usuarios", sc);
+	                        /*Log.debug("Usuarios:", sc);
+	                        for (Usuario u : serv.userLst.values()) {
+								Log.debug("Usuario:\n" + u.toString(),sc);
+							}*/
 	                        fOut.writeObject(new MensajeSolicListaUsuar(serv.userLst, true));
+							fOut.flush();
+							fOut.reset();
 						}
 						break;
 						
@@ -112,6 +121,8 @@ public class OyenteCliente extends Thread implements Runnable {
 
                         // Mandar mensaje al emisor para que cree el emisor
                         serv.flujoLst.get(userId).getFout().writeObject(new MensajeEmitirFichero(mf.getFileName(), usuario, false));
+						serv.flujoLst.get(userId).getFout().flush();
+						serv.flujoLst.get(userId).getFout().reset();
 						break;
 						
                     case PREPARADO_CS:
@@ -120,6 +131,8 @@ public class OyenteCliente extends Thread implements Runnable {
                     	
                         //Mandamos mensaje de preparado con puerto e ip del emisor
                     	serv.flujoLst.get(mp.getUser()).getFout().writeObject(new MensajePreparadoSC(mp.getIP(), mp.getPort(), mp.getFileName()));
+						serv.flujoLst.get(mp.getUser()).getFout().flush();
+						serv.flujoLst.get(mp.getUser()).getFout().reset();
 					
                         break;
                     
@@ -141,6 +154,8 @@ public class OyenteCliente extends Thread implements Runnable {
                     	//avisamos de que se ha completado con exito
                     	
                     	fOut.writeObject(new MensajeActualizarListaUsuarios(ma.idCliente, ma.nombreArchivo, true));
+						fOut.flush();
+						fOut.reset();
                         
                     default:
 						Log.error("Mensaje no reconocido", sc);

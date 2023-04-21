@@ -46,6 +46,8 @@ public class OyenteServidor extends Thread implements Runnable {
 			boolean sigue = true;
 			fOut = new ObjectOutputStream(sc.getOutputStream());
 			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user));
+			fOut.flush();
+			fOut.reset();
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
 			fIn = new ObjectInputStream(sc.getInputStream());
 			MensajeConexion mc1 = (MensajeConexion) fIn.readObject();
@@ -66,6 +68,8 @@ public class OyenteServidor extends Thread implements Runnable {
 						if (!mc.isACK()) {
 							Log.debug("Cerrando canal...", sc);
 							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, user));
+							fOut.flush();
+							fOut.reset();
 						} else {
 							Log.debug("Canal cerrado", sc);
 						}
@@ -78,13 +82,15 @@ public class OyenteServidor extends Thread implements Runnable {
 					if (!ms.isACK()) {
 						Log.error("Error al solicitar lista de usuarios: yo no soy un servidor", sc);
 					} else {
-						Map<String, Usuario> usrs = ms.getUsuarios();
+						Map<String, Usuario> usrs;
+						usrs = ms.getUsuarios();
 
 						Log.debug("Lista de usuarios recibida", sc);
 
 						for (Usuario u : usrs.values()) {
 							System.out.println("Usuario:\n" + u.toString());
 						}
+						usrs.clear();
 						viaLibre.release();
 					}
 					break;
@@ -107,6 +113,8 @@ public class OyenteServidor extends Thread implements Runnable {
 					emisor.start();
 					
 					fOut.writeObject(new MensajePreparadoCS(mef.getUser(), user.IP, user.puerto, mef.getFileName()));
+					fOut.flush();
+					fOut.reset();
 					break;
 					
 				case PREPARADO_SC:
@@ -121,6 +129,8 @@ public class OyenteServidor extends Thread implements Runnable {
 					receptor.start();
 		
 					fOut.writeObject(new MensajeActualizarListaUsuarios(user.nombre, preparado.getFileName(), false));
+					fOut.flush();
+					fOut.reset();
 					
 					//fOut.writeObject(new MensajePreparadoSC(preparado, user.puerto, preparado.getFileName()));
 					break;

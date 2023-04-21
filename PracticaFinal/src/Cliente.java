@@ -101,14 +101,20 @@ public class Cliente {
 				Log.console("Introduce el nombre del archivo que quieres descargar");
 				String archibo = scan.nextLine();
 				fOut.writeObject(new MensajePedirFichero(archibo, false));
+				fOut.flush();
+				fOut.reset();
 				viaLibre.acquire();
 				break;
 			case 2:
 				fOut.writeObject(new MensajeSolicListaUsuar(null, false));
+				fOut.flush();
+				fOut.reset();
 				viaLibre.acquire();
 				break;
 			case 3:
 				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));
+				fOut.flush();
+				fOut.reset();
 				sigue = false;
 				break;
 			default:

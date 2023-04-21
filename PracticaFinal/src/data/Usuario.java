@@ -1,14 +1,11 @@
 package data;
 
-import java.io.PrintWriter;
-import java.io.BufferedReader;
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Usuario implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-
+	private static final long serialVersionUID = 7531143353322080241L;
 	public String IP;
 	public String nombre;
 	public int puerto;
