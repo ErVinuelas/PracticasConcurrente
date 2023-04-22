@@ -106,7 +106,7 @@ public class OyenteServidor extends Thread implements Runnable {
 					//la conexión p2p y devolvemos el nombre
 					
 					//Cargamos el mensaje a mandar para pasarselo al emisor
-					String file = cliente.archivos.get(mef.getFileName());
+					String file = cliente.archivos.get(mef.getFileName()).read();
 					int puerto = user.getNextPort();
 					
 					

@@ -1,14 +1,10 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import data.Usuario;
 import mensajes.MensajeConexion;
@@ -23,7 +19,112 @@ public class Cliente {
 	// Guarda los archivos y su dirección asociada, nosotros almacenamos
 	// directamente el string que hay
 	// asociado a un nombre de fichero.
-	public HashMap<String, String> archivos;
+	public HashMap<String, fileMonitor> archivos;
+	
+	//clase que guarda la informacion del sistema de lectura escritura para cada archivo
+	public class fileMonitor{
+		private Semaphore testigo;
+		private Semaphore reader;
+		private Semaphore writer;
+		private int numberReaders;
+		private int delayedReaders;
+		private int numberWriters;
+		private int delayedWriters;
+		private String archivo;
+		
+		public fileMonitor(String archivo) {
+			this.archivo=archivo;
+			numberReaders = 0;
+	        delayedReaders = 0;
+	        numberWriters = 0;
+	        delayedWriters = 0;
+
+			testigo = new Semaphore(1);
+			reader = new Semaphore(0);
+			writer = new Semaphore(0);
+		}
+		
+		public void write(String val) {
+			try {
+                testigo.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if(numberReaders > 0 || numberWriters > 0) {
+                delayedWriters++;
+                testigo.release();
+                try {
+                    writer.acquire();                   //Paso de testigo
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            numberWriters++;    //Tengo el mutex testigo
+            testigo.release();  //Liberamos mutex
+
+            archivo=val;
+
+            try {
+                testigo.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            numberWriters--;
+            if(delayedWriters > 0){
+                delayedReaders--;
+                reader.release();   //Paso del testigo a un lector
+            } else{
+                testigo.release();  //Soltamos el mutex
+            }
+		}
+		
+		
+		public String read() {
+			String res;
+			try {
+                testigo.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if(numberWriters > 0) {
+                
+                delayedReaders = delayedReaders + 1;
+                testigo.release();  //Paso testigo E
+
+                try {
+                    reader.acquire();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            numberReaders++;
+            if(delayedReaders > 0)  {   delayedReaders = delayedReaders - 1;    reader.release();   }   //Si hay readers esperando, despierto en cadena
+            else    {   testigo.release();  }   //Sino, libero el mutex
+
+            res = archivo;
+
+            try {
+                testigo.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            numberReaders--;
+            if(numberReaders == 0 && delayedWriters > 0){
+                delayedWriters--;
+                writer.release(); //Paso testigo
+            }
+            else{
+                testigo.release();
+            }
+            return res;
+		}
+		
+	}
 
 	// Información del usuario que hay asociado al cliente.
 	protected Usuario yo;
@@ -43,7 +144,7 @@ public class Cliente {
 
 	public Cliente() {
 		scan = new Scanner(System.in);
-		archivos = new HashMap<String, String>();
+		archivos = new HashMap<String, fileMonitor>();
 		viaLibre = new Semaphore(0);
 	}
 
@@ -66,9 +167,9 @@ public class Cliente {
 			String archivo = scan.nextLine();
 			yo.addFile(archivo);
 			
-			Log.console("Introduce la ruta del archivo");
+			Log.console("Introduce el contenido del archivo");
 			String ruta = scan.nextLine();
-			archivos.put(archivo, ruta);
+			archivos.put(archivo, new fileMonitor(ruta));
 			
 			Log.console("Quieres compartir otro archivo? (s/n)");
 			respuesta = scan.nextLine();
