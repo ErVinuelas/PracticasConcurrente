@@ -104,15 +104,15 @@ public class OyenteServidor extends Thread implements Runnable {
 					
 					//Cargamos el mensaje a mandar para pasarselo al emisor
 					String file = cliente.archivos.get(mef.getFileName());
-					user.puerto+=1;
+					int puerto = user.getNextPort();
 					
 					
 					Log.debug("Se ha pedido el archivo "+ mef.getFileName() + " que contiene " + file, sc);
-					Emisor emisor = new Emisor(user.puerto, file, mef.getFileName());
-					Log.debug("Se inicia un emisor con puerto "+ user.puerto, sc);
+					Emisor emisor = new Emisor(puerto, file, mef.getFileName());
+					Log.debug("Se inicia un emisor con puerto "+ puerto, sc);
 					emisor.start();
 					
-					fOut.writeObject(new MensajePreparadoCS(mef.getUser(), user.IP, user.puerto, mef.getFileName()));
+					fOut.writeObject(new MensajePreparadoCS(mef.getUser(), user.IP, puerto, mef.getFileName()));
 					fOut.flush();
 					fOut.reset();
 					break;

@@ -1,3 +1,4 @@
+package locks;
 import java.util.ArrayList;
 
 public class LockRompeEmpate extends Lock {
@@ -23,7 +24,7 @@ public class LockRompeEmpate extends Lock {
 			for (int k = 0; k < N; k++)
 				if (k != id)
 					while (in.get(k).get() >= in.get(id).get() && last.get(j).get() == id);
-			}
+		}
 	}
 
 	public void releaseLock(int id) {

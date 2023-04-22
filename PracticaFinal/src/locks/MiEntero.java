@@ -1,3 +1,4 @@
+package locks;
 
 public class MiEntero {
 	private volatile int n;

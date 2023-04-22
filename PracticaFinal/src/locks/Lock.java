@@ -1,3 +1,4 @@
+package locks;
 
 public abstract class Lock {
 	protected int N;

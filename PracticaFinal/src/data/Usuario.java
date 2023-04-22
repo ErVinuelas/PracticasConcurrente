@@ -3,12 +3,14 @@ package data;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import locks.Lock;
+
 public class Usuario implements Serializable {
 
 	private static final long serialVersionUID = 7531143353322080241L;
 	public String IP;
 	public String nombre;
-	public int puerto;
+	private int puerto;
 	public ArrayList<String> archivos;
 
 	public Usuario(String nombre, String IP, int puerto) {
@@ -16,6 +18,11 @@ public class Usuario implements Serializable {
 		this.nombre = nombre;
 		this.puerto = puerto;
 		archivos = new ArrayList<String>();
+	}
+	
+	public synchronized int getNextPort() {
+		this.puerto++;
+		return this.puerto;
 	}
 
 	public void addFile(String nombre) {

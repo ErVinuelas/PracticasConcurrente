@@ -1,3 +1,4 @@
+package locks;
 import java.util.ArrayList;
 
 public class LockBakery extends Lock{
