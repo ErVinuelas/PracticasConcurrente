@@ -47,7 +47,7 @@ public class Cliente {
 		viaLibre = new Semaphore(0);
 	}
 
-	// Inicializamos el cliented
+	// Inicializamos el cliente
 	public void init() throws UnknownHostException, IOException, InterruptedException {
 		String nombre, dir;
 		int port;

@@ -44,11 +44,14 @@ public class OyenteServidor extends Thread implements Runnable {
 	public void run() {
 		try {
 			boolean sigue = true;
+			//Creamos canal de salida
 			fOut = new ObjectOutputStream(sc.getOutputStream());
 			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user));
 			fOut.flush();
 			fOut.reset();
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
+			
+			//Creamos canal de entrada
 			fIn = new ObjectInputStream(sc.getInputStream());
 			MensajeConexion mc1 = (MensajeConexion) fIn.readObject();
 

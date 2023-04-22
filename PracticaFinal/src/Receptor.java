@@ -1,8 +1,6 @@
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.concurrent.Semaphore;
 
 import mensajes.Mensaje;
@@ -39,30 +37,41 @@ public class Receptor extends Thread {
     	try {
     		fOut = new ObjectOutputStream(sc.getOutputStream());
 	        fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, null));
+	        
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
+			
 			fIn = new ObjectInputStream(sc.getInputStream());
+			
 	        Mensaje m = (Mensaje) fIn.readObject();
+	        
 	        if(m.getTipo()!=TipoMensaje.CONEXION){
 	            
 	        }
+	        
 	        MensajeConexion mc = (MensajeConexion) m;
 	        if (mc.getMessage() != TipoConexion.ABRIR || !mc.isACK()) {
 	            
 	        }
+	        
 	        m = (Mensaje) fIn.readObject();
 	        while(m.getTipo()!=TipoMensaje.ARCHIVO){
 	            m = (Mensaje) fIn.readObject();
 	        }
+	        
 	        MensajeArchivo ma = (MensajeArchivo) m;
+	        
 	        System.out.println("Archivo: " + ma.getNombreArchivo());
 	        System.out.println("Mensaje: " + ma.getMensaje() + "\n");
+	        
 	        cli.archivos.put(ma.getNombreArchivo(), ma.getMensaje());
 	        viaLibre.release();
 	        fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, null));
+	        
 	        m = (Mensaje) fIn.readObject();
 	        if(m.getTipo()!=TipoMensaje.CONEXION || !((MensajeConexion) m).isACK() || ((MensajeConexion) m).getMessage()!=TipoConexion.CERRAR){
 	           
 	        }
+	        
 	        fOut.flush();
 	        fOut.close();
 	        fIn.close();
