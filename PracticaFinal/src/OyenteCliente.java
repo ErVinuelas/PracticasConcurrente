@@ -1,13 +1,7 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import data.Usuario;
@@ -20,7 +14,6 @@ import mensajes.MensajePreparadoCS;
 import mensajes.MensajePreparadoSC;
 import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
-import mensajes.TipoMensaje;
 
 //TODO arreglar los booleanos de los mensajes,están mezclados
 public class OyenteCliente extends Thread implements Runnable {
@@ -64,7 +57,7 @@ public class OyenteCliente extends Thread implements Runnable {
 							fOut.flush();
 							fOut.reset();
 							
-							// Actualizamos la tabla de usuarios
+							// Creamos variables auxiliares para almacenar los datos
 							usuario = mc.getUser().nombre;
 							Usuario auxuser = mc.getUser();
 							auxuser.IP = sc.getInetAddress().toString();
@@ -159,7 +152,6 @@ public class OyenteCliente extends Thread implements Runnable {
                         ObjectOutputStream fOutAux = serv.flujoLst.get(userId).getFout();
                         serv.terminarLecturaFlujo();
                         
-                        //Haria falta que esto fuera concurrente?
                         fOutAux.writeObject(new MensajeEmitirFichero(mf.getFileName(), usuario, false));
 						fOutAux.flush();
 						fOutAux.reset();

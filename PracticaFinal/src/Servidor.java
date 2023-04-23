@@ -52,7 +52,7 @@ public class Servidor {
 	}
 	
 	public static void main(String[] args) {
-		Servidor serv = new Servidor(4200);
+		Servidor serv = new Servidor(5200);
 		serv.listen();
 	}
 
@@ -175,7 +175,7 @@ public class Servidor {
 	}
 	
 	public void solicitarEscrituraFileToUser() {
-		flujoLock.lock();
+		fileToUserLock.lock();
         while(numReaderFileToUser > 0 || numWriterFileToUser > 0) {
             try {
                 cmdWriterFileToUser.await();
@@ -204,11 +204,11 @@ public class Servidor {
 	}
 	
 	public void terminarEscrituraFileToUser() {
-		flujoLock.lock();
-        numWriterFlujo--;
-        cmdWriterFlujo.signal();
-        cmdReaderFlujo.signalAll();
-        flujoLock.unlock();
+		fileToUserLock.lock();
+        numWriterFileToUser--;
+        cmdWriterFileToUser.signal();
+        cmdReaderFileToUser.signalAll();
+        fileToUserLock.unlock();
 	}
 
 }
