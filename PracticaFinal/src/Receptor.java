@@ -10,9 +10,6 @@ import mensajes.TipoConexion;
 import mensajes.TipoMensaje;
 
 public class Receptor extends Thread {
-
-	private String IP;
-	private int puerto;
 	
 	private Semaphore viaLibre;
 	private Socket sc;
@@ -22,8 +19,6 @@ public class Receptor extends Thread {
 	private ObjectOutputStream fOut;
 
     public Receptor(String IP, int puerto, Semaphore viaLibre, Cliente cli){
-        this.IP = IP;
-        this.puerto = puerto;
         this.viaLibre = viaLibre;
         this.cli=cli;
         try {
@@ -36,21 +31,21 @@ public class Receptor extends Thread {
     public void run(){
     	try {
     		fOut = new ObjectOutputStream(sc.getOutputStream());
-	        fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, null));
+	        
+    		fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, null));
 	        
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
 			
 			fIn = new ObjectInputStream(sc.getInputStream());
 			
 	        Mensaje m = (Mensaje) fIn.readObject();
-	        
 	        if(m.getTipo()!=TipoMensaje.CONEXION){
-	            
+	        	throw new UnsupportedOperationException("Operación no soportada.");
 	        }
 	        
 	        MensajeConexion mc = (MensajeConexion) m;
 	        if (mc.getMessage() != TipoConexion.ABRIR || !mc.isACK()) {
-	            
+	        	throw new UnsupportedOperationException("Operación no soportada.");
 	        }
 	        
 	        m = (Mensaje) fIn.readObject();
@@ -69,7 +64,7 @@ public class Receptor extends Thread {
 	        
 	        m = (Mensaje) fIn.readObject();
 	        if(m.getTipo()!=TipoMensaje.CONEXION || !((MensajeConexion) m).isACK() || ((MensajeConexion) m).getMessage()!=TipoConexion.CERRAR){
-	           
+	        	throw new UnsupportedOperationException("Operación no soportada.");
 	        }
 	        
 	        fOut.flush();

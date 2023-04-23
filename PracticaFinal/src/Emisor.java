@@ -36,7 +36,7 @@ public class Emisor extends Thread {
 			Mensaje m  = (Mensaje) fIn.readObject();
 			
 			if(m.getTipo() != TipoMensaje.CONEXION || m.isACK() || ((MensajeConexion) m).getMessage() != TipoConexion.ABRIR) {
-				
+				throw new UnsupportedOperationException("Operacion no soportada.");
 			}
 			
 			Log.debug("Esperando al receptor...", s);
@@ -49,8 +49,9 @@ public class Emisor extends Thread {
 			
 			m = (Mensaje) fIn.readObject();
 	        if(m.getTipo()!=TipoMensaje.CONEXION || ((MensajeConexion) m).isACK() || ((MensajeConexion) m).getMessage()!=TipoConexion.CERRAR){
-	           
+				throw new UnsupportedOperationException("Operacion no soportada.");
 	        }
+	        
 	        fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, null));
 	        fOut.flush();
 	        fOut.close();
@@ -58,7 +59,7 @@ public class Emisor extends Thread {
 	        s.close();
 	        ss.close();
 		}catch(Exception e) {
-			
+			//Suponemos que todo va bien.
 		}
 	}
 }

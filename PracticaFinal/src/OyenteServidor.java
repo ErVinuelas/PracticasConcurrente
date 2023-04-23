@@ -1,15 +1,9 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
-
-import javax.lang.model.util.ElementScanner6;
 
 import data.Usuario;
 import mensajes.Mensaje;
@@ -57,7 +51,7 @@ public class OyenteServidor extends Thread implements Runnable {
 
 			if (!(mc1.getMessage() == TipoConexion.ABRIR && mc1.isACK())) {
 				Log.error("Mensaje inesperado al iniciar conexion con el servidor, se cancela comunicación", sc);
-				throw new Exception();
+				throw new UnsupportedOperationException();
 			}
 			viaLibre.release();
 			
@@ -111,8 +105,11 @@ public class OyenteServidor extends Thread implements Runnable {
 					
 					
 					Log.debug("Se ha pedido el archivo "+ mef.getFileName() + " que contiene " + file, sc);
+					
 					Emisor emisor = new Emisor(puerto, file, mef.getFileName());
+					
 					Log.debug("Se inicia un emisor con puerto "+ puerto, sc);
+					
 					emisor.start();
 					
 					fOut.writeObject(new MensajePreparadoCS(mef.getUser(), user.IP, puerto, mef.getFileName()));
