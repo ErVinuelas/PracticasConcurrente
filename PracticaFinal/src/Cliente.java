@@ -19,11 +19,11 @@ public class Cliente {
 	// Guarda los archivos y su dirección asociada, nosotros almacenamos
 	// directamente el string que hay
 	// asociado a un nombre de fichero.
-	public HashMap<String, fileManager> archivos;
+	public HashMap<String, FileManager> archivos;
 
 	// Clase que guarda la informacion del sistema de lectura escritura para cada
 	// archivo
-	public class fileManager {
+	public class FileManager {
 		private Semaphore testigo;
 		private Semaphore reader;
 		private Semaphore writer;
@@ -35,7 +35,7 @@ public class Cliente {
 
 		private String archivo;
 
-		public fileManager(String archivo) {
+		public FileManager(String archivo) {
 			this.archivo = archivo;
 			numberReaders = 0;
 			delayedReaders = 0;
@@ -144,7 +144,7 @@ public class Cliente {
 
 	public Cliente() {
 		scan = new Scanner(System.in);
-		archivos = new HashMap<String, fileManager>();
+		archivos = new HashMap<String, FileManager>();
 		viaLibre = new Semaphore(0);
 	}
 
@@ -169,7 +169,7 @@ public class Cliente {
 
 			Log.console("Introduce el contenido del archivo");
 			String ruta = scan.nextLine();
-			archivos.put(archivo, new fileManager(ruta));
+			archivos.put(archivo, new FileManager(ruta));
 
 			Log.console("Quieres compartir otro archivo? (s/n)");
 			respuesta = scan.nextLine();
