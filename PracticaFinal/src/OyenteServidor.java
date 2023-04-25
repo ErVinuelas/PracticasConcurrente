@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import data.Usuario;
+import locks.Lock;
 import mensajes.Mensaje;
 import mensajes.MensajeActualizarListaUsuarios;
 import mensajes.MensajeConexion;
@@ -25,14 +26,18 @@ public class OyenteServidor extends Thread implements Runnable {
 	protected Usuario user;
 	protected Cliente cliente;
 
-	protected Semaphore viaLibre;
+	protected Lock viaLibre;
 
-	public OyenteServidor(Socket sc, Usuario user, Semaphore viaLibre, Cliente cliente) {
+	public OyenteServidor(Socket sc, Usuario user, Lock viaLibre, Cliente cliente) {
 		this.sc = sc;
 		this.user = user;
 		this.viaLibre = viaLibre;
 		this.cliente = cliente;
 		Log.debug("iniciando oyente", sc);
+	}
+	
+	public void takeLock() {
+		viaLibre.takeLock(1);
 	}
 
 	public void run() {
@@ -53,7 +58,7 @@ public class OyenteServidor extends Thread implements Runnable {
 				Log.error("Mensaje inesperado al iniciar conexion con el servidor, se cancela comunicación", sc);
 				throw new UnsupportedOperationException();
 			}
-			viaLibre.release();
+			viaLibre.releaseLock(1);
 			
 			while (sigue) {
 				Mensaje m = (Mensaje) fIn.readObject();
@@ -88,7 +93,7 @@ public class OyenteServidor extends Thread implements Runnable {
 							System.out.println("Usuario:\n" + u.toString());
 						}
 						usrs.clear();
-						viaLibre.release();
+						viaLibre.releaseLock(1);
 					}
 					break;
 
@@ -100,7 +105,7 @@ public class OyenteServidor extends Thread implements Runnable {
 					//la conexión p2p y devolvemos el nombre
 					
 					//Cargamos el mensaje a mandar para pasarselo al emisor
-					String file = cliente.archivos.get(mef.getFileName()).read();
+					String file = cliente.archivos.get(mef.getFileName());
 					int puerto = user.getNextPort();
 					
 					

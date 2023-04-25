@@ -6,7 +6,10 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 
+import data.DirectorioConcurrente;
 import data.Usuario;
+import locks.Lock;
+import locks.LockRompeEmpate;
 import mensajes.MensajeConexion;
 import mensajes.MensajePedirFichero;
 import mensajes.MensajeSolicListaUsuar;
@@ -19,113 +22,7 @@ public class Cliente {
 	// Guarda los archivos y su dirección asociada, nosotros almacenamos
 	// directamente el string que hay
 	// asociado a un nombre de fichero.
-	public HashMap<String, FileManager> archivos;
-
-	// Clase que guarda la informacion del sistema de lectura escritura para cada
-	// archivo
-	public class FileManager {
-		private Semaphore testigo;
-		private Semaphore reader;
-		private Semaphore writer;
-
-		private int numberReaders;
-		private int delayedReaders;
-		private int numberWriters;
-		private int delayedWriters;
-
-		private String archivo;
-
-		public FileManager(String archivo) {
-			this.archivo = archivo;
-			numberReaders = 0;
-			delayedReaders = 0;
-			numberWriters = 0;
-			delayedWriters = 0;
-
-			testigo = new Semaphore(1);
-			reader = new Semaphore(0);
-			writer = new Semaphore(0);
-		}
-
-		public void write(String val) {
-			try {	testigo.acquire();	} catch (InterruptedException e) {	e.printStackTrace();	}
-
-			if (numberReaders > 0 || numberWriters > 0) {
-				delayedWriters++;
-				testigo.release();
-				try {	writer.acquire(); // Paso de testigo
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-
-			numberWriters++; // Tengo el mutex testigo
-			testigo.release(); // Liberamos mutex
-
-			archivo = val;
-
-			try {
-				testigo.acquire();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			numberWriters--;
-			if (delayedWriters > 0) {
-				delayedReaders--;
-				reader.release(); // Paso del testigo a un lector
-			} else {
-				testigo.release(); // Soltamos el mutex
-			}
-		}
-
-		public String read() {
-			String res;
-			try {
-				testigo.acquire();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			if (numberWriters > 0) {
-
-				delayedReaders = delayedReaders + 1;
-				testigo.release(); // Paso testigo E
-
-				try {
-					reader.acquire();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-
-			numberReaders++;
-			if (delayedReaders > 0) {
-				delayedReaders = delayedReaders - 1;
-				reader.release();
-			} // Si hay readers esperando, despierto en cadena
-			else {
-				testigo.release();
-			} // Sino, libero el mutex
-
-			res = archivo;
-
-			try {
-				testigo.acquire();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			numberReaders--;
-			if (numberReaders == 0 && delayedWriters > 0) {
-				delayedWriters--;
-				writer.release(); // Paso testigo
-			} else {
-				testigo.release();
-			}
-			return res;
-		}
-
-	}
+	public DirectorioConcurrente archivos;
 
 	// Información del usuario que hay asociado al cliente.
 	protected Usuario yo;
@@ -140,12 +37,12 @@ public class Cliente {
 	protected Scanner scan;
 
 	// Semáforo que nos permite regular la interfaz gráfica.
-	protected Semaphore viaLibre;
+	protected Lock viaLibre;
 
 	public Cliente() {
 		scan = new Scanner(System.in);
-		archivos = new HashMap<String, FileManager>();
-		viaLibre = new Semaphore(0);
+		archivos = new DirectorioConcurrente();
+		viaLibre = new LockRompeEmpate(2);
 	}
 
 	// Inicializamos el cliente
@@ -169,7 +66,7 @@ public class Cliente {
 
 			Log.console("Introduce el contenido del archivo");
 			String ruta = scan.nextLine();
-			archivos.put(archivo, new FileManager(ruta));
+			archivos.put(archivo, ruta);
 
 			Log.console("Quieres compartir otro archivo? (s/n)");
 			respuesta = scan.nextLine();
@@ -184,8 +81,9 @@ public class Cliente {
 		// Inicialización del resto de elementos del cliente.
 		sc = new Socket(dir, port);
 		hilo = new OyenteServidor(sc, yo, viaLibre, this);
+		hilo.takeLock();
 		hilo.start();
-		viaLibre.acquire();
+		viaLibre.takeLock(0);
 		fOut = hilo.getFout();
 	}
 
@@ -201,16 +99,21 @@ public class Cliente {
 			case 1:
 				Log.console("Introduce el nombre del archivo que quieres descargar");
 				String archibo = scan.nextLine();
+				viaLibre.releaseLock(0);
 				fOut.writeObject(new MensajePedirFichero(archibo, false));
+				hilo.takeLock();
+				viaLibre.takeLock(0);
 				fOut.flush();
 				fOut.reset();
-				viaLibre.acquire();
+
 				break;
 			case 2:
+				viaLibre.releaseLock(0);
 				fOut.writeObject(new MensajeSolicListaUsuar(null, false));
+				hilo.takeLock();
+				viaLibre.takeLock(0);
 				fOut.flush();
 				fOut.reset();
-				viaLibre.acquire();
 				break;
 			case 3:
 				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));

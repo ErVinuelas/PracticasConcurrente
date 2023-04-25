@@ -3,6 +3,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
+import locks.Lock;
 import mensajes.Mensaje;
 import mensajes.MensajeArchivo;
 import mensajes.MensajeConexion;
@@ -11,14 +12,14 @@ import mensajes.TipoMensaje;
 
 public class Receptor extends Thread {
 
-	private Semaphore viaLibre;
+	private Lock viaLibre;
 	private Socket sc;
 	private Cliente cli;
 
 	private ObjectInputStream fIn;
 	private ObjectOutputStream fOut;
 
-	public Receptor(String IP, int puerto, Semaphore viaLibre, Cliente cli) {
+	public Receptor(String IP, int puerto, Lock viaLibre, Cliente cli) {
 		this.viaLibre = viaLibre;
 		this.cli = cli;
 		try {
@@ -59,8 +60,8 @@ public class Receptor extends Thread {
 			System.out.println("Mensaje: " + ma.getMensaje() + "\n");
 
 			//Guardamos el nuevo archivo
-			cli.archivos.put(ma.getNombreArchivo(), cli.new FileManager(ma.getMensaje()));
-			viaLibre.release();
+			cli.archivos.put(ma.getNombreArchivo(), ma.getMensaje());
+			viaLibre.releaseLock(1);
 			
 			fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, null));
 

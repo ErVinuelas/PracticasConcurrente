@@ -1,4 +1,5 @@
 package locks;
+
 import java.util.ArrayList;
 
 public class LockRompeEmpate extends Lock {
@@ -8,7 +9,6 @@ public class LockRompeEmpate extends Lock {
 
 	public LockRompeEmpate(int N) {
 		super(N);
-		System.out.println(N);
 		this.last = new ArrayList<MiEntero>(N);
 		this.in = new ArrayList<MiEntero>(N);
 		for(int i=0;i<N;i++) {
@@ -17,6 +17,7 @@ public class LockRompeEmpate extends Lock {
 		}
 	}
 
+	@Override
 	public void takeLock(int id) {
 		for (int j = 0; j < N; j++) {
 			in.get(id).set(j+1);
