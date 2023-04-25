@@ -15,7 +15,6 @@ import mensajes.MensajePreparadoSC;
 import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
 
-//TODO arreglar los booleanos de los mensajes,están mezclados
 public class OyenteCliente extends Thread implements Runnable {
 
 	protected Socket sc;
@@ -65,43 +64,31 @@ public class OyenteCliente extends Thread implements Runnable {
 							//Modificamos las tablas de manera concurrente
 							
 							//Tabla usuarios
-							serv.solicitarEscrituraUser();
 							serv.userLst.put(auxuser.nombre,auxuser);
-							serv.terminarEscrituraUser();
 							
 							//Tabla flujo
-							serv.solicitarEscrituraFlujo();
 							serv.flujoLst.put(auxuser.nombre, new Flujos(fIn, fOut));
-							serv.terminarEscrituraFlujo();
 							
 							//Tabla de fileToUser
 							for(String arc : auxuser.archivos) {
 								
-								serv.solicitarEscrituraFileToUser();
 								if(!serv.fileToUser.containsKey(arc))
 									serv.fileToUser.put(arc, new TreeSet<String>());
 								serv.fileToUser.get(arc).add(auxuser.nombre);
-								serv.terminarEscrituraFileToUser();
 							}
 						} else {	//Cerrar conexión
 							Log.debug("Cerrando canal...", sc);
 							Usuario exitUser = mc.getUser();
 							
-							serv.solicitarEscrituraUser();
 							serv.userLst.remove(exitUser.nombre);
-							serv.terminarEscrituraUser();
 							
 							//Retiramos sus archivos
 							for(String file : exitUser.archivos) 
 								if(serv.fileToUser.get(file).size()>=0){
-									serv.solicitarEscrituraFileToUser();
 									serv.fileToUser.get(file).remove(exitUser.nombre);
-									serv.terminarEscrituraFileToUser();
 									
 									if(serv.fileToUser.get(file).size()==0) {
-										serv.solicitarEscrituraFileToUser();
 										serv.fileToUser.remove(file);
-										serv.terminarEscrituraFileToUser();
 									}
 								}
 							
@@ -129,7 +116,7 @@ public class OyenteCliente extends Thread implements Runnable {
 	                        for (Usuario u : serv.userLst.values()) {
 								Log.debug("Usuario:\n" + u.toString(),sc);
 							}*/
-	                        fOut.writeObject(new MensajeSolicListaUsuar(serv.userLst, true));
+	                        fOut.writeObject(new MensajeSolicListaUsuar(serv.userLst.getTabla(), true));
 							fOut.flush();
 							fOut.reset();
 						}
@@ -140,17 +127,13 @@ public class OyenteCliente extends Thread implements Runnable {
 						MensajePedirFichero mf = (MensajePedirFichero) m;
 						
                         // Decidir quien manda fichero(emisor)
-						serv.solicitarLecturaFileToUser();
                         String userId = serv.fileToUser.get(mf.getFileName()).iterator().next();
-                        serv.terminarLecturaFileToUser();
                         
                         Log.debug("pedido " + mf.getFileName() + " que pertenece a " + userId, sc);
 
                         // Mandar mensaje al emisor para que cree el emisor
                         
-                        serv.solicitarLecturaFlujo();
                         ObjectOutputStream fOutAux = serv.flujoLst.get(userId).getFout();
-                        serv.terminarLecturaFlujo();
                         
                         fOutAux.writeObject(new MensajeEmitirFichero(mf.getFileName(), usuario, false));
 						fOutAux.flush();
@@ -161,10 +144,7 @@ public class OyenteCliente extends Thread implements Runnable {
                     	
                     	MensajePreparadoCS mp = (MensajePreparadoCS)m;
                     	
-                    	
-                        serv.solicitarLecturaFlujo();
                         ObjectOutputStream fOutAuxPrep = serv.flujoLst.get(mp.getUser()).getFout();
-                        serv.terminarLecturaFlujo();
                         //Mandamos mensaje de preparado con puerto e ip del emisor
                     	fOutAuxPrep.writeObject(new MensajePreparadoSC(mp.getIP(), mp.getPort(), mp.getFileName()));
 						fOutAuxPrep.flush();
@@ -179,20 +159,14 @@ public class OyenteCliente extends Thread implements Runnable {
                     	Log.debug(ma.idCliente + " ha incorporado a sus archivos " + ma.nombreArchivo, sc);
                     	
                     	//Actualizamos la lista de usuarios
-                    	serv.solicitarEscrituraUser();
                     	serv.userLst.get(ma.idCliente).addFile(ma.nombreArchivo);
-                    	serv.terminarEscrituraUser();
                     	
                     	//También actualizamos la lista de dependencia
                     	
-                    	serv.solicitarEscrituraFileToUser();
                     	if(!serv.fileToUser.containsKey(ma.nombreArchivo))
 							serv.fileToUser.put(ma.nombreArchivo, new TreeSet<String>());
-                    	serv.terminarEscrituraFileToUser();
                     	
-                    	serv.solicitarEscrituraFileToUser();
                     	serv.fileToUser.get(ma.nombreArchivo).add(usuario);
-                    	serv.terminarEscrituraFileToUser();
                     	
                     	//Avisamos de que se ha completado con exito
                     	
@@ -213,14 +187,11 @@ public class OyenteCliente extends Thread implements Runnable {
 			e.printStackTrace();
 			try {
 				
-				serv.solicitarEscrituraUser();
 				Usuario exitUser = serv.userLst.get(usuario);
 				serv.userLst.remove(usuario);
-				serv.terminarEscrituraUser();
 				
 				//Retiramos sus archivos
 				for(String file : exitUser.archivos) {
-					serv.solicitarEscrituraFileToUser();
 				
 					if(serv.fileToUser.get(file).size()>=0){
 						serv.fileToUser.get(file).remove(exitUser.nombre);
@@ -228,8 +199,6 @@ public class OyenteCliente extends Thread implements Runnable {
 							serv.fileToUser.remove(file);
 						}
 					}
-					
-					serv.terminarEscrituraFileToUser();
 				}
 				
 				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));
@@ -238,9 +207,7 @@ public class OyenteCliente extends Thread implements Runnable {
 				fIn.close();
 				
 				//Retiramos la entrada de el flujo para este cliente
-				serv.solicitarEscrituraFlujo();
 				serv.flujoLst.remove(usuario);
-				serv.terminarEscrituraFlujo();
 				
 				sc.close();
 				

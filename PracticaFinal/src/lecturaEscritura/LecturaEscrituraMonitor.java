@@ -6,36 +6,26 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LecturaEscrituraMonitor implements LecturaEscritura {
 
-	private final Lock l = new ReentrantLock(true);
+	private final Lock l;
 	
-	//Tenemos un variable condicional por cada grupo de lectores o escritores en cada tabla
+	//Tenemos un variable condicional por cada grupo de lectores o escritores 
 	
-	private final Condition cmdReader = l.newCondition();
-	private final Condition cmdWriter = l.newCondition();
+	private final Condition cmdReader;
+	private final Condition cmdWriter;
 	
-	private int numReader = 0, numWriter = 0;
+	private int numReader, numWriter;
 	
-	Object buffer;
-
-	public LecturaEscrituraMonitor(Object o) {
-		buffer = 0;
-		
-	}
-
-	@Override
-	public void write(Object o) {
-		
-	}
-
-	@Override
-	public Object read() {
-		
-		return null;
+	public LecturaEscrituraMonitor() {
+		this.l = new ReentrantLock(true);
+		this.cmdReader = l.newCondition();
+		this.cmdWriter = l.newCondition();
+		this.numReader = 0;
+		this.numWriter = 0;
 	}
 	
 	//Procesos para manejar la concurrencia
 	
-	public void solicitarLectura() {
+	public void requestRead() {
 		l.lock();
 		
 		while(numWriter > 0) {
@@ -49,7 +39,7 @@ public class LecturaEscrituraMonitor implements LecturaEscritura {
 		l.unlock();
 	}
 	
-	public void terminarLectura() {
+	public void releaseRead() {
 		l.lock();
 		
 		numReader--;
@@ -60,7 +50,7 @@ public class LecturaEscrituraMonitor implements LecturaEscritura {
 		l.unlock();
 	}
 	
-	public void solicitarEscritura() {
+	public void requestWrite() {
 		l.lock();
         while(numReader > 0 || numWriter > 0) {
             try {
@@ -73,7 +63,7 @@ public class LecturaEscrituraMonitor implements LecturaEscritura {
         l.unlock();
 	}
 	
-	public void terminarEscritura() {
+	public void releaseWrite() {
 		l.lock();
         numWriter--;
         cmdWriter.signal();
