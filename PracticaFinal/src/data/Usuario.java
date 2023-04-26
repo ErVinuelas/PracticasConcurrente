@@ -2,10 +2,9 @@ package data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import locks.Lock;
 
-import locks.LockNoSize;
-import locks.LockTicketNoSize;
-
+import locks.LockTicket;
 public class Usuario implements Serializable {
 
 	private static final long serialVersionUID = 7531143353322080241L;
@@ -13,21 +12,21 @@ public class Usuario implements Serializable {
 	public String nombre;
 	private int puerto;
 	public ArrayList<String> archivos;
-	private LockNoSize port;
+	private Lock port;
 
 	public Usuario(String nombre, String IP, int puerto) {
 		this.IP = IP;
 		this.nombre = nombre;
 		this.puerto = puerto;
-		port = new LockTicketNoSize();
+		port = new LockTicket(10);
 		archivos = new ArrayList<String>();
 	}
 	
 	public int getNextPort() {
 		try {
-			port.takeLock();
+			port.takeLock(0);
 			this.puerto++;
-			port.releaseLock();
+			port.releaseLock(0);
 			return this.puerto;
 		}catch(Exception e) {
 			return -1;

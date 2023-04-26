@@ -10,7 +10,7 @@ public class LockBakery extends Lock{
 	}
 	
 	public LockBakery(int N) {
-		super(N);
+		this.N = N;
 		turn = new ArrayList<MiEntero>(N);
 		for(int i=0;i<N;i++)
 			turn.add(new MiEntero());

@@ -1,33 +1,36 @@
 package locks;
-import java.util.ArrayList;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
-class LockTicket extends Lock {
+public class LockTicket extends Lock {
 
+	private static final long serialVersionUID = 1L;
 	private AtomicInteger num;
 	private int next;
-	private ArrayList<MiEntero> turn;
 
 	public LockTicket(int N) {
-		super(N);
+		this.N = N;
 		num = new AtomicInteger(0);
 		next = 0;
-		turn = new ArrayList<MiEntero>(N);
-		for (int i = 0; i < N; i++) {
-			turn.add( new MiEntero());
-		}
 	}
 
 	@Override
 	public void takeLock(int id) {
-		turn.get(id).set(num.getAndAdd(1));
-		while (turn.get(id).get() != next)
+		AtomicInteger Max = new AtomicInteger(N + 1);
+		MiEntero turn = new MiEntero();
+		
+		turn.set(num.getAndAdd(1));
+		
+		if(turn.get() == Max.get())	{	num.getAndAdd(-Max.get());	}
+		else if(turn.get() >= Max.get())	{	turn.set(turn.get() - Max.get());	}
+		
+		while (turn.get() != next)
 			;
 	}
 
 	@Override
 	public void releaseLock(int id) {
-		next++;
+		next = next%N + 1;
 
 	}
 

@@ -8,7 +8,7 @@ public class LockRompeEmpate extends Lock {
 	ArrayList<MiEntero> in;
 
 	public LockRompeEmpate(int N) {
-		super(N);
+		this.N = N;
 		this.last = new ArrayList<MiEntero>(N);
 		this.in = new ArrayList<MiEntero>(N);
 		for(int i=0;i<N;i++) {
