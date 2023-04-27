@@ -71,10 +71,7 @@ public class OyenteCliente extends Thread implements Runnable {
 							
 							//Tabla de fileToUser
 							for(String arc : auxuser.archivos) {
-								
-								if(!serv.fileToUser.containsKey(arc))
-									serv.fileToUser.put(arc, new TreeSet<String>());
-								serv.fileToUser.get(arc).add(auxuser.nombre);
+								serv.fileToUser.add(arc, auxuser.nombre);
 							}
 						} else {	//Cerrar conexión
 							Log.debug("Cerrando canal...", sc);
@@ -84,13 +81,7 @@ public class OyenteCliente extends Thread implements Runnable {
 							
 							//Retiramos sus archivos
 							for(String file : exitUser.archivos) 
-								if(serv.fileToUser.get(file).size()>=0){
-									serv.fileToUser.get(file).remove(exitUser.nombre);
-									
-									if(serv.fileToUser.get(file).size()==0) {
-										serv.fileToUser.remove(file);
-									}
-								}
+								serv.fileToUser.remove(file, exitUser.nombre);
 							
 							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));
 							fOut.flush();
@@ -127,7 +118,8 @@ public class OyenteCliente extends Thread implements Runnable {
 						MensajePedirFichero mf = (MensajePedirFichero) m;
 						
                         // Decidir quien manda fichero(emisor)
-                        String userId = serv.fileToUser.get(mf.getFileName()).iterator().next();
+						Log.debug("pedido " + mf.getFileName(), sc);
+                        String userId = serv.fileToUser.getFirst(mf.getFileName());
                         
                         Log.debug("pedido " + mf.getFileName() + " que pertenece a " + userId, sc);
 
@@ -163,19 +155,17 @@ public class OyenteCliente extends Thread implements Runnable {
                     	
                     	//También actualizamos la lista de dependencia
                     	
-                    	if(!serv.fileToUser.containsKey(ma.nombreArchivo))
-							serv.fileToUser.put(ma.nombreArchivo, new TreeSet<String>());
-                    	
-                    	serv.fileToUser.get(ma.nombreArchivo).add(usuario);
+                    	serv.fileToUser.add(ma.nombreArchivo, usuario);
                     	
                     	//Avisamos de que se ha completado con exito
                     	
                     	fOut.writeObject(new MensajeActualizarListaUsuarios(ma.idCliente, ma.nombreArchivo, true));
 						fOut.flush();
 						fOut.reset();
+						break;
                         
                     default:
-						Log.error("Mensaje no reconocido", sc);
+						Log.error("Mensaje no reconocido: " + m.getTipo().toString(), sc);
 				}
 			}
 			
@@ -192,13 +182,7 @@ public class OyenteCliente extends Thread implements Runnable {
 				
 				//Retiramos sus archivos
 				for(String file : exitUser.archivos) {
-				
-					if(serv.fileToUser.get(file).size()>=0){
-						serv.fileToUser.get(file).remove(exitUser.nombre);
-						if(serv.fileToUser.get(file).size()==0) {
-							serv.fileToUser.remove(file);
-						}
-					}
+					serv.fileToUser.remove(file, exitUser.nombre);
 				}
 				
 				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));

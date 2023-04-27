@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import locks.Lock;
 
-import locks.LockTicket;
+import locks.LockTicketNoMaxSize;
 public class Usuario implements Serializable {
 
 	private static final long serialVersionUID = 7531143353322080241L;
@@ -18,7 +18,7 @@ public class Usuario implements Serializable {
 		this.IP = IP;
 		this.nombre = nombre;
 		this.puerto = puerto;
-		port = new LockTicket(10);
+		port = new LockTicketNoMaxSize();
 		archivos = new ArrayList<String>();
 	}
 	

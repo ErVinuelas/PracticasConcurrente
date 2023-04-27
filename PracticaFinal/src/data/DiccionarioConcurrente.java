@@ -1,6 +1,8 @@
 package data;
 
 import java.util.Map;
+import java.util.Collection;
+import java.util.HashSet;
 
 import lecturaEscritura.LecturaEscritura;
 import lecturaEscritura.LecturaEscrituraMonitor;
@@ -39,7 +41,31 @@ public class DiccionarioConcurrente<K, D> {
 		tablaConcurrente.remove(nombre);
 		mecanismoConcurrencia.releaseWrite();
 	}
+
+	public void remove(String nombre, String key) {
+		mecanismoConcurrencia.requestWrite();
+		((Collection)(tablaConcurrente.get(nombre))).remove(key);
+		if(((Collection)(tablaConcurrente.get(nombre))).isEmpty()) {
+			tablaConcurrente.remove(nombre);
+		}
+		mecanismoConcurrencia.releaseWrite();
+	}
+
+	public String getFirst(String nombre) {
+		mecanismoConcurrencia.requestRead();
+		String res = (String)(((Collection<D>)(tablaConcurrente.get(nombre))).iterator().next());
+		mecanismoConcurrencia.releaseRead();
+		return res;
+	}
 	
+	public void add(String nombre, String key) {
+		mecanismoConcurrencia.requestWrite();
+		if(!tablaConcurrente.containsKey(nombre))
+			tablaConcurrente.put((K)nombre, (D)(new HashSet()));
+		((Collection)(tablaConcurrente.get(nombre))).add(key);
+		mecanismoConcurrencia.releaseWrite();
+	}
+
 	public Map<K,D> getTabla() {
 		return this.tablaConcurrente;
 	}

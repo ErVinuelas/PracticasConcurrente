@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import data.DirectorioConcurrente;
@@ -43,6 +44,53 @@ public class Cliente {
 		scan = new Scanner(System.in);
 		archivos = new DirectorioConcurrente();
 		viaLibre = new LockRompeEmpate(2);
+	}
+
+	// para debug
+	public Cliente(int id, String nombre, String dir, int port, HashMap<String, String> archivos, List<String> archivosPedir, int numPedirUsuarios, boolean ends)
+			throws UnknownHostException, IOException, InterruptedException {
+		viaLibre = new LockRompeEmpate(2);
+		yo = new Usuario(nombre, "localhost", id*100+4000);	
+		this.archivos = new DirectorioConcurrente();
+		for (String s : archivos.keySet()) {
+			this.archivos.put(s, archivos.get(s));
+			yo.addFile(s);
+		}
+		sc = new Socket(dir, port);
+		hilo = new OyenteServidor(sc, yo, viaLibre, this);
+		hilo.takeLock();
+		hilo.start();
+		viaLibre.takeLock(0);
+		fOut = hilo.getFout();
+		for (String s : archivosPedir) {
+			viaLibre.releaseLock(0);
+			hilo.takeLock();
+			fOut.writeObject(new MensajePedirFichero(s, false));
+			viaLibre.takeLock(0);
+			fOut.flush();
+			fOut.reset();
+			try{
+				Thread.sleep(10);
+			}catch (Exception e) {
+				// TODO: handle exception
+			}
+
+		}
+		for (int i = 0; i < numPedirUsuarios; i++) {
+			viaLibre.releaseLock(0);
+			hilo.takeLock();
+			fOut.writeObject(new MensajeSolicListaUsuar(null, false));
+			viaLibre.takeLock(0);
+			fOut.flush();
+			fOut.reset();
+			try{
+				Thread.sleep(10);
+			}catch (Exception e) {
+				//
+			}
+		}
+		if(ends) fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));
+		else while(true);
 	}
 
 	// Inicializamos el cliente
@@ -100,8 +148,8 @@ public class Cliente {
 				Log.console("Introduce el nombre del archivo que quieres descargar");
 				String archibo = scan.nextLine();
 				viaLibre.releaseLock(0);
-				fOut.writeObject(new MensajePedirFichero(archibo, false));
 				hilo.takeLock();
+				fOut.writeObject(new MensajePedirFichero(archibo, false));
 				viaLibre.takeLock(0);
 				fOut.flush();
 				fOut.reset();
@@ -109,8 +157,8 @@ public class Cliente {
 				break;
 			case 2:
 				viaLibre.releaseLock(0);
-				fOut.writeObject(new MensajeSolicListaUsuar(null, false));
 				hilo.takeLock();
+				fOut.writeObject(new MensajeSolicListaUsuar(null, false));
 				viaLibre.takeLock(0);
 				fOut.flush();
 				fOut.reset();
