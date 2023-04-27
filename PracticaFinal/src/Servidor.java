@@ -6,6 +6,8 @@ import java.util.TreeMap;
 
 import data.DiccionarioConcurrente;
 import data.Usuario;
+import data.FlujosConcurrentes;
+import data.Flujos;
 
 public class Servidor {
 
@@ -16,7 +18,7 @@ public class Servidor {
 	
 	//Tablas
 	public volatile DiccionarioConcurrente<String, Usuario> userLst;
-	public volatile DiccionarioConcurrente<String, Flujos> flujoLst;
+	public volatile TreeMap<String, FlujosConcurrentes> flujoLst;
 
 	public volatile DiccionarioConcurrente<String, Set<String>> fileToUser;
 
@@ -29,7 +31,7 @@ public class Servidor {
 		
 		//Creamos la tablas concurrentes
 		this.userLst = new DiccionarioConcurrente<String ,Usuario>(new TreeMap<String, Usuario>());
-		this.flujoLst = new DiccionarioConcurrente<String, Flujos>(new TreeMap<String, Flujos>());
+		this.flujoLst = new TreeMap<String, FlujosConcurrentes>();
 		this.fileToUser = new DiccionarioConcurrente<String, Set<String>>(new TreeMap<String, Set<String>>());
 	}
 	

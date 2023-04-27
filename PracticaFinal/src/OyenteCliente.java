@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.TreeSet;
 
 import data.Usuario;
+import data.FlujosConcurrentes;
 import mensajes.Mensaje;
 import mensajes.MensajeActualizarListaUsuarios;
 import mensajes.MensajeConexion;
@@ -14,12 +15,11 @@ import mensajes.MensajePreparadoCS;
 import mensajes.MensajePreparadoSC;
 import mensajes.MensajeSolicListaUsuar;
 import mensajes.TipoConexion;
+import mensajes.TipoMensaje;
 
 public class OyenteCliente extends Thread implements Runnable {
 
 	protected Socket sc;
-	protected ObjectInputStream fIn;
-	protected volatile ObjectOutputStream fOut;
 
 	protected Servidor serv;
 	protected String usuario;
@@ -35,11 +35,54 @@ public class OyenteCliente extends Thread implements Runnable {
 		try {
 			boolean stop = false;
 			//Creamos el canal de comunicación
-			fIn = new ObjectInputStream(sc.getInputStream());
+			ObjectInputStream fIn = new ObjectInputStream(sc.getInputStream());
+			Mensaje m1 = (Mensaje) fIn.readObject();
+
+			if(m1.getTipo()!=TipoMensaje.CONEXION){
+				//Cerramos el canal
+				Log.error("Se esperaba mensaje de tipo CONEXION pero se recibio mensaje de tipo "+ m1.getTipo().toString(), sc);
+				fIn.close();
+				sc.close();
+				return;
+			}
+
+			MensajeConexion mc1 = (MensajeConexion) m1;
+
+			if (mc1.getMessage() != TipoConexion.ABRIR){
+				//Cerramos el canal
+				Log.error("Se esperaba mensaje de tipo ABRIR CONEXION pero se recibio mensaje de tipo CERRAR", sc);
+				fIn.close();
+				sc.close();
+				return;
+			}
+
+			//Creamos el canal de salida
+			ObjectOutputStream fOut = new ObjectOutputStream(sc.getOutputStream());
+			Log.debug("Canal preparado", sc);
+			//Mandamos confirmación
+			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, null));
+			
+			// Creamos variables auxiliares para almacenar los datos
+			usuario = mc1.getUser().nombre;
+			Usuario auxuser = mc1.getUser();
+			auxuser.IP = sc.getInetAddress().toString();
+			
+			//Modificamos las tablas de manera concurrente
+			
+			//Tabla usuarios
+			serv.userLst.put(auxuser.nombre,auxuser);
+			
+			//Tabla flujo
+			serv.flujoLst.put(auxuser.nombre, new FlujosConcurrentes(fIn, fOut));
+			
+			//Tabla de fileToUser
+			for(String arc : auxuser.archivos) {
+				serv.fileToUser.add(arc, auxuser.nombre);
+			}
 
 			while (!stop) {
-				
-				Mensaje m = (Mensaje) fIn.readObject();
+				Log.debug("Esperando mensaje...", sc);
+				Mensaje m = (Mensaje) serv.flujoLst.get(usuario).readObject();
 				Log.debug("mensaje recibido de tipo " + m.getTipo().toString(), sc);
 
 				switch (m.getTipo()) {
@@ -48,31 +91,8 @@ public class OyenteCliente extends Thread implements Runnable {
 						MensajeConexion mc = (MensajeConexion) m;
 						
 						if (mc.getMessage() == TipoConexion.ABRIR) {	//Abrir conexión
-							//Creamos el canal de salida
-							fOut = new ObjectOutputStream(sc.getOutputStream());
-							Log.debug("Canal preparado", sc);
-							//Mandamos confirmación
-							fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, true, null));
-							fOut.flush();
-							fOut.reset();
-							
-							// Creamos variables auxiliares para almacenar los datos
-							usuario = mc.getUser().nombre;
-							Usuario auxuser = mc.getUser();
-							auxuser.IP = sc.getInetAddress().toString();
-							
-							//Modificamos las tablas de manera concurrente
-							
-							//Tabla usuarios
-							serv.userLst.put(auxuser.nombre,auxuser);
-							
-							//Tabla flujo
-							serv.flujoLst.put(auxuser.nombre, new Flujos(fIn, fOut));
-							
-							//Tabla de fileToUser
-							for(String arc : auxuser.archivos) {
-								serv.fileToUser.add(arc, auxuser.nombre);
-							}
+							Log.error("Se ha recibido un segundo mensaje de tipo ABRIR CONEXION", sc);
+							throw new Exception("Se ha recibido un segundo mensaje de tipo ABRIR CONEXION");
 						} else {	//Cerrar conexión
 							Log.debug("Cerrando canal...", sc);
 							Usuario exitUser = mc.getUser();
@@ -83,12 +103,11 @@ public class OyenteCliente extends Thread implements Runnable {
 							for(String file : exitUser.archivos) 
 								serv.fileToUser.remove(file, exitUser.nombre);
 							
-							fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));
-							fOut.flush();
+							serv.flujoLst.get(usuario).writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));
 							
 							//Cerramos los canales
-							fOut.close();
-							fIn.close();
+							serv.flujoLst.get(usuario).close();
+							serv.flujoLst.remove(usuario);
 							sc.close();
 							
 							stop = true;
@@ -107,9 +126,7 @@ public class OyenteCliente extends Thread implements Runnable {
 	                        for (Usuario u : serv.userLst.values()) {
 								Log.debug("Usuario:\n" + u.toString(),sc);
 							}*/
-	                        fOut.writeObject(new MensajeSolicListaUsuar(serv.userLst.getTabla(), true));
-							fOut.flush();
-							fOut.reset();
+	                        serv.flujoLst.get(usuario).writeObject(new MensajeSolicListaUsuar(serv.userLst.getTabla(), true));
 						}
 						break;
 						
@@ -125,22 +142,15 @@ public class OyenteCliente extends Thread implements Runnable {
 
                         // Mandar mensaje al emisor para que cree el emisor
                         
-                        ObjectOutputStream fOutAux = serv.flujoLst.get(userId).getFout();
-                        
-                        fOutAux.writeObject(new MensajeEmitirFichero(mf.getFileName(), usuario, false));
-						fOutAux.flush();
-						fOutAux.reset();
+                        serv.flujoLst.get(userId).writeObject(new MensajeEmitirFichero(mf.getFileName(), usuario, false));
+						Log.debug("peticion de archivo enviado a "+userId, sc);
 						break;
 						
                     case PREPARADO_CS:
                     	
                     	MensajePreparadoCS mp = (MensajePreparadoCS)m;
                     	
-                        ObjectOutputStream fOutAuxPrep = serv.flujoLst.get(mp.getUser()).getFout();
-                        //Mandamos mensaje de preparado con puerto e ip del emisor
-                    	fOutAuxPrep.writeObject(new MensajePreparadoSC(mp.getIP(), mp.getPort(), mp.getFileName()));
-						fOutAuxPrep.flush();
-						fOutAuxPrep.reset();
+                        serv.flujoLst.get(mp.getUser()).writeObject(new MensajePreparadoSC(mp.getIP(), mp.getPort(), mp.getFileName()));
 					
                         break;
                     
@@ -159,9 +169,7 @@ public class OyenteCliente extends Thread implements Runnable {
                     	
                     	//Avisamos de que se ha completado con exito
                     	
-                    	fOut.writeObject(new MensajeActualizarListaUsuarios(ma.idCliente, ma.nombreArchivo, true));
-						fOut.flush();
-						fOut.reset();
+                    	serv.flujoLst.get(usuario).writeObject(new MensajeActualizarListaUsuarios(ma.idCliente, ma.nombreArchivo, true));
 						break;
                         
                     default:
@@ -170,7 +178,6 @@ public class OyenteCliente extends Thread implements Runnable {
 			}
 			
 			Log.debug("Canal Cerrado", sc);
-			fIn.close();
 			
 		} catch (Exception e) {
 			Log.error("error inesperado, cerrando hilo", sc);
@@ -185,10 +192,8 @@ public class OyenteCliente extends Thread implements Runnable {
 					serv.fileToUser.remove(file, exitUser.nombre);
 				}
 				
-				fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));
-				fOut.flush();
-				fOut.close();
-				fIn.close();
+				serv.flujoLst.get(usuario).writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));
+				serv.flujoLst.get(usuario).close();
 				
 				//Retiramos la entrada de el flujo para este cliente
 				serv.flujoLst.remove(usuario);
@@ -200,10 +205,6 @@ public class OyenteCliente extends Thread implements Runnable {
 				
 			}
 		}
-	}
-
-	public ObjectOutputStream getFout() {
-		return fOut;
 	}
 
 }

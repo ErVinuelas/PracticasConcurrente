@@ -47,7 +47,7 @@ public class MuchosClientes extends Thread{
         for(int i = 0; i < numArchivos; i++){
             archivosPedir.add(Integer.toString(i));
         }
-        int numPedirUsuarios = 1;
+        int numPedirUsuarios = 5;
         List<MuchosClientes> clientes = new ArrayList<MuchosClientes>();
         MuchosClientes mainCliente = new MuchosClientes(101, "main", dir, port, archivos, new ArrayList<String>(), numPedirUsuarios, false); 
         mainCliente.start();

@@ -58,10 +58,13 @@ public class OyenteServidor extends Thread implements Runnable {
 				Log.error("Mensaje inesperado al iniciar conexion con el servidor, se cancela comunicación", sc);
 				throw new UnsupportedOperationException();
 			}
+			Log.debug("canal preparado", sc);
 			viaLibre.releaseLock(1);
 			
 			while (sigue) {
+				Log.debug("Esperando mensaje...", sc);
 				Mensaje m = (Mensaje) fIn.readObject();
+				Log.debug("Mensaje recibido: " + m.getTipo().toString(), sc);
 				switch (m.getTipo()) {
 
 				case CONEXION:
