@@ -3,7 +3,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 import data.Usuario;
 import locks.Lock;
@@ -35,7 +34,7 @@ public class OyenteServidor extends Thread implements Runnable {
 		this.cliente = cliente;
 		Log.debug("iniciando oyente", sc);
 	}
-	
+
 	public void takeLock() {
 		viaLibre.takeLock(1);
 	}
@@ -43,14 +42,14 @@ public class OyenteServidor extends Thread implements Runnable {
 	public void run() {
 		try {
 			boolean sigue = true;
-			//Creamos canal de salida
+			// Creamos canal de salida
 			fOut = new ObjectOutputStream(sc.getOutputStream());
 			fOut.writeObject(new MensajeConexion(TipoConexion.ABRIR, false, user));
 			fOut.flush();
 			fOut.reset();
 			Log.debug("Esperando confirmacion de canal preparado...", sc);
-			
-			//Creamos canal de entrada
+
+			// Creamos canal de entrada
 			fIn = new ObjectInputStream(sc.getInputStream());
 			MensajeConexion mc1 = (MensajeConexion) fIn.readObject();
 
@@ -60,7 +59,7 @@ public class OyenteServidor extends Thread implements Runnable {
 			}
 			Log.debug("canal preparado", sc);
 			viaLibre.releaseLock(1);
-			
+
 			while (sigue) {
 				Log.debug("Esperando mensaje...", sc);
 				Mensaje m = (Mensaje) fIn.readObject();
@@ -79,7 +78,7 @@ public class OyenteServidor extends Thread implements Runnable {
 							Log.debug("Canal cerrado", sc);
 						}
 						sigue = false;
-					} 
+					}
 					break;
 
 				case PEDIR_LISTA:
@@ -101,50 +100,54 @@ public class OyenteServidor extends Thread implements Runnable {
 					break;
 
 				case EMITIR_FICHERO:
-					
-					MensajeEmitirFichero mef = (MensajeEmitirFichero)m;
-					
-					//Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que gestione
-					//la conexión p2p y devolvemos el nombre
-					
-					//Cargamos el mensaje a mandar para pasarselo al emisor
+
+					MensajeEmitirFichero mef = (MensajeEmitirFichero) m;
+
+					// Mandamos mensaje de confirmación al servidor. Tenemos que crear un emisor que
+					// gestione
+					// la conexión p2p y devolvemos el nombre
+
+					// Cargamos el mensaje a mandar para pasarselo al emisor
 					String file = cliente.archivos.get(mef.getFileName());
 					int puerto = user.getNextPort();
-					
-					
-					Log.debug("Se ha pedido el archivo "+ mef.getFileName() + " que contiene " + file, sc);
-					
+
+					Log.debug("Se ha pedido el archivo " + mef.getFileName() + " que contiene " + file, sc);
+
 					Emisor emisor = new Emisor(puerto, file, mef.getFileName());
-					
-					Log.debug("Se inicia un emisor con puerto "+ puerto, sc);
-					
+
+					Log.debug("Se inicia un emisor con puerto " + puerto, sc);
+
 					emisor.start();
-					
+
 					fOut.writeObject(new MensajePreparadoCS(mef.getUser(), user.IP, puerto, mef.getFileName()));
 					fOut.flush();
 					fOut.reset();
 					break;
-					
+
 				case PREPARADO_SC:
-					//Crear el receptor(nuevo thread)
+					// Crear el receptor(nuevo thread)
 					MensajePreparadoSC preparado = (MensajePreparadoSC) m;
-					//Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), viaLibre);
-					
-					Log.debug("El archivo " + preparado.getFileName() + " esta listo en ip " + preparado.getIP() + ":" + preparado.getPort(), sc);
-		
-					//Log.debug(,sc);
-					Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), this.viaLibre, this.cliente);
+					// Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(),
+					// viaLibre);
+
+					Log.debug("El archivo " + preparado.getFileName() + " esta listo en ip " + preparado.getIP() + ":"
+							+ preparado.getPort(), sc);
+
+					// Log.debug(,sc);
+					Receptor receptor = new Receptor(preparado.getIP(), preparado.getPort(), this.viaLibre,
+							this.cliente);
 					receptor.start();
-		
+
 					fOut.writeObject(new MensajeActualizarListaUsuarios(user.nombre, preparado.getFileName(), false));
 					fOut.flush();
 					fOut.reset();
-					
-					//fOut.writeObject(new MensajePreparadoSC(preparado, user.puerto, preparado.getFileName()));
+
+					// fOut.writeObject(new MensajePreparadoSC(preparado, user.puerto,
+					// preparado.getFileName()));
 					break;
-					
+
 				case ACTUALIZAR_LISTA:
-					if(m.isACK()) {
+					if (m.isACK()) {
 						Log.debug("Lista actualizada con exito", sc);
 						break;
 					}

@@ -59,10 +59,10 @@ public class Receptor extends Thread {
 			System.out.println("Archivo: " + ma.getNombreArchivo());
 			System.out.println("Mensaje: " + ma.getMensaje() + "\n");
 
-			//Guardamos el nuevo archivo
+			// Guardamos el nuevo archivo
 			cli.archivos.put(ma.getNombreArchivo(), ma.getMensaje());
 			viaLibre.releaseLock(1);
-			
+
 			fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, null));
 
 			m = (Mensaje) fIn.readObject();

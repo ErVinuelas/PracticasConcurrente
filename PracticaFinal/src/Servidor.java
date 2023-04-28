@@ -4,7 +4,6 @@ import java.net.Socket;
 import java.util.Set;
 import java.util.TreeMap;
 
-import data.DiccionarioConcurrente;
 import data.Usuario;
 import data.FlujosConcurrentes;
 import data.Flujos;
@@ -37,7 +36,7 @@ public class Servidor {
 		this.flujoLst = new DiccionarioFlujos();
 		this.fileToUser = new DiccionarioFile2User();
 	}
-	
+
 	public static void main(String[] args) {
 		Servidor serv = new Servidor(5200);
 		serv.listen();

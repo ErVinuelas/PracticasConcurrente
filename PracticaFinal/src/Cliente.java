@@ -5,7 +5,6 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import data.DirectorioConcurrente;
 import data.Usuario;
@@ -47,20 +46,26 @@ public class Cliente {
 	}
 
 	// para debug
-	public Cliente(int id, String nombre, String dir, int port, HashMap<String, String> archivos, List<String> archivosPedir, int numPedirUsuarios, boolean ends)
+	public Cliente(int id, String nombre, String dir, int port, HashMap<String, String> archivos,
+			List<String> archivosPedir, int numPedirUsuarios, boolean ends)
 			throws UnknownHostException, IOException, InterruptedException {
 		viaLibre = new LockRompeEmpate(2);
-		yo = new Usuario(nombre, "localhost", id*100+4000);	
+		
+		//Creamos usuario
+		yo = new Usuario(nombre, "localhost", id * 100 + 4000);
 		this.archivos = new DirectorioConcurrente();
 		for (String s : archivos.keySet()) {
 			this.archivos.put(s, archivos.get(s));
 			yo.addFile(s);
 		}
+		
 		sc = new Socket(dir, port);
 		hilo = new OyenteServidor(sc, yo, viaLibre, this);
 		hilo.takeLock();
 		hilo.start();
+		
 		viaLibre.takeLock(0);
+		
 		fOut = hilo.getFout();
 		for (String s : archivosPedir) {
 			viaLibre.releaseLock(0);
@@ -69,9 +74,9 @@ public class Cliente {
 			viaLibre.takeLock(0);
 			fOut.flush();
 			fOut.reset();
-			try{
+			try {
 				Thread.sleep(10);
-			}catch (Exception e) {
+			} catch (Exception e) {
 				// TODO: handle exception
 			}
 
@@ -83,14 +88,17 @@ public class Cliente {
 			viaLibre.takeLock(0);
 			fOut.flush();
 			fOut.reset();
-			try{
+			try {
 				Thread.sleep(10);
-			}catch (Exception e) {
+			} catch (Exception e) {
 				//
 			}
 		}
-		if(ends) fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));
-		else while(true);
+		if (ends)
+			fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, false, yo));
+		else
+			while (true)
+				;
 	}
 
 	// Inicializamos el cliente
