@@ -3,13 +3,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import lecturaEscritura.LecturaEscritura;
 import lecturaEscritura.LecturaEscrituraSemaforo;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import locks.Lock;
 import locks.LockTicketNoMaxSize;
 
 public class FlujosConcurrentes {
@@ -19,15 +20,15 @@ public class FlujosConcurrentes {
 	
 	public FlujosConcurrentes(ObjectInputStream fIn, ObjectOutputStream fOut) {
         this.flujos = new Flujos(fIn, fOut);
-        this.out = new LockTicketNoMaxSize();
+        this.out = new ReentrantLock(true);
     }
 	
 	public void writeObject(Object data) throws IOException {
-        out.takeLock(0);
+        out.lock();
         flujos.getFout().flush();
 		flujos.getFout().reset();
 		flujos.getFout().writeObject(data);
-        out.releaseLock(0);
+        out.unlock();
 	}
 	
 	public Object readObject() throws IOException, ClassNotFoundException {

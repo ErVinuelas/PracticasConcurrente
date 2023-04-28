@@ -34,8 +34,8 @@ public class MuchosClientes extends Thread{
     }
 
     public static void main(String[] args) {
-        //Log.DEBUG = false;
-        int numClientes = 10;
+        Log.DEBUG = false;
+        int numClientes = 15;
         String dir = "localhost";
         int port = 5200;
         HashMap<String, String> archivos = new HashMap<String, String>();

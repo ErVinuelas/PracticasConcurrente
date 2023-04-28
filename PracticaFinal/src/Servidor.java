@@ -8,6 +8,9 @@ import data.DiccionarioConcurrente;
 import data.Usuario;
 import data.FlujosConcurrentes;
 import data.Flujos;
+import data.DiccionarioFlujos;
+import data.DiccionarioUsuarios;
+import data.DiccionarioFile2User;
 
 public class Servidor {
 
@@ -17,10 +20,10 @@ public class Servidor {
 	//Hay una cola por cada tabla
 	
 	//Tablas
-	public volatile DiccionarioConcurrente<String, Usuario> userLst;
-	public volatile TreeMap<String, FlujosConcurrentes> flujoLst;
+	public volatile DiccionarioUsuarios userLst;
+	public volatile DiccionarioFlujos flujoLst;
 
-	public volatile DiccionarioConcurrente<String, Set<String>> fileToUser;
+	public volatile DiccionarioFile2User fileToUser;
 
 	public Servidor(int port) {
 		try {
@@ -30,9 +33,9 @@ public class Servidor {
 		}
 		
 		//Creamos la tablas concurrentes
-		this.userLst = new DiccionarioConcurrente<String ,Usuario>(new TreeMap<String, Usuario>());
-		this.flujoLst = new TreeMap<String, FlujosConcurrentes>();
-		this.fileToUser = new DiccionarioConcurrente<String, Set<String>>(new TreeMap<String, Set<String>>());
+		this.userLst = new DiccionarioUsuarios();
+		this.flujoLst = new DiccionarioFlujos();
+		this.fileToUser = new DiccionarioFile2User();
 	}
 	
 	public static void main(String[] args) {
