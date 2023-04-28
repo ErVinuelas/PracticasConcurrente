@@ -35,7 +35,6 @@ public class Emisor extends Thread {
 
 			Log.debug("Esperando al receptor...", s);
 
-			
 			Mensaje m = (Mensaje) fIn.readObject();
 			if (m.getTipo() != TipoMensaje.CONEXION || m.isACK()
 					|| ((MensajeConexion) m).getMessage() != TipoConexion.ABRIR) {
@@ -55,10 +54,10 @@ public class Emisor extends Thread {
 				throw new UnsupportedOperationException("Operacion no soportada.(2)");
 			}
 
-			//Mensaje de confirmación de cerrar el canal
+			// Mensaje de confirmación de cerrar el canal
 			fOut.writeObject(new MensajeConexion(TipoConexion.CERRAR, true, null));
 			fOut.flush();
-			
+
 			fOut.close();
 			fIn.close();
 			s.close();
