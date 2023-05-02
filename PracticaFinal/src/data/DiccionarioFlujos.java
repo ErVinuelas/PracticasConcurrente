@@ -1,8 +1,8 @@
 package data;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import locks.Lock;
+import locks.LockTicketNoMaxSize;
 
 public class DiccionarioFlujos {
     private Map<String, FlujosConcurrentes> tablaConcurrente;
@@ -10,7 +10,7 @@ public class DiccionarioFlujos {
 
     public DiccionarioFlujos() {
         this.tablaConcurrente = new HashMap<String, FlujosConcurrentes>();
-        this.out = new ReentrantLock(true);
+        this.out = new LockTicketNoMaxSize();
     }
 
     public FlujosConcurrentes get(String key) {
@@ -19,9 +19,9 @@ public class DiccionarioFlujos {
     }
 
     public void put(String key, FlujosConcurrentes data) {
-        out.lock();
+        out.takeLock(0);
         tablaConcurrente.put(key, data);
-        out.unlock();
+        out.releaseLock(0);
     }
 
     public boolean containsKey(String key) {
@@ -29,9 +29,9 @@ public class DiccionarioFlujos {
     }
 
     public void remove(String key) {
-        out.lock();
+        out.takeLock(0);
         tablaConcurrente.remove(key);
-        out.unlock();
+        out.releaseLock(0);
     }
 
 }

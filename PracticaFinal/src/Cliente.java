@@ -49,6 +49,8 @@ public class Cliente {
 	public Cliente(int id, String nombre, String dir, int port, HashMap<String, String> archivos,
 			List<String> archivosPedir, int numPedirUsuarios, boolean ends)
 			throws UnknownHostException, IOException, InterruptedException {
+		/*Descomenta esto si quieres dejar de ver los mensajes de debug*/
+		//Log.DEBUG = false;
 		viaLibre = new LockRompeEmpate(2);
 		
 		//Creamos usuario
